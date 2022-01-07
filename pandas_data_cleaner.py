@@ -173,7 +173,9 @@ def open_drop_cols_window():
     else:
         # Inner function that accesses same variables as parent function-- open_drop_cols_window
         def drop_columns():
+            # Get the selected listbox items and put in a list
             col_list = [col_listbox.get(i) for i in col_listbox.curselection()]
+
             df.drop(columns=col_list, inplace=True)
 
         # Create window
@@ -239,75 +241,222 @@ def open_drop_cols_window():
 
 def open_impute_nulls_window_mean():
     '''impute nulls with mean, median, or mode'''
+    # Check if dataframe is loaded.  If it's not loaded, notify user and exit function
+    if len(df) == 0: 
+        messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+    else:
+        # Inner function that accesses same variables as parent function-- open_drop_cols_window
+        def impute_with_mmm(impute_method):
+            # Get the selected listbox items and put in a list
+            col_list = [col_listbox.get(i) for i in col_listbox.curselection()]
+            col_str = ', '.join(col_list)
+            # Loop through col_list to impute each column with selected value (i.e., mean, mode, median)
+            for col in col_list:
+                if impute_method == 'mean':
+                    col_mean = round(df[col].mean(), 1)
+                    df[col].fillna(col_mean, inplace=True)
+                elif impute_method == 'mode':
+                    col_mode = round(df[col].mode(), 1)
+                    df[col].fillna(col_mode, inplace=True)
+                else:
+                    col_median = round(df[col].median(), 1)
+                    df[col].fillna(col_median, inplace=True)
 
-    # Create window
-    impute_null_mean_window = tk.Toplevel(root, bg='#1ac6ff')
-    impute_null_mean_window.geometry('550x500')
-    try:
-        impute_null_mean_window.iconbitmap('./images/panda.ico')
-    except:
-        impute_null_mean_window.iconbitmap(my_dir / './images/panda.ico')
-    impute_null_mean_window.resizable(0,0)
-    impute_null_mean_window.title('Impute Nulls with Mean')
+            messagebox.showinfo(title="Impute with MMM", 
+            message=f'Column(s) {col_str} imputed with {impute_method}.')
 
-    # Create left frame for label and listbox
-    left_frame = tk.Frame(impute_null_mean_window, bg='#1ac6ff', width=300, height=500)
-    #left_frame.columnconfigure((0,1), weight=1)
-    #left_frame.rowconfigure(0, weight=1)
-    left_frame.grid(row=0, column=0, padx=5, pady=5)
-    left_frame.grid_propagate(0)
+        # Create window
+        impute_null_mean_window = tk.Toplevel(root, bg='#1ac6ff')
+        impute_null_mean_window.geometry('550x500')
+        try:
+            impute_null_mean_window.iconbitmap('./images/panda.ico')
+        except:
+            impute_null_mean_window.iconbitmap(my_dir / './images/panda.ico')
+        impute_null_mean_window.resizable(0,0)
+        impute_null_mean_window.title('Impute Nulls with Mean')
 
-    # Create right frame for buttons
-    right_frame = tk.Frame(impute_null_mean_window, bg='#1ac6ff', width=250, height=500)
-    #right_frame.columnconfigure((0,1), weight=1)
-    #right_frame.rowconfigure(0, weight=1)
-    right_frame.grid(row=0, column=1, padx=5, pady=5)
-    right_frame.grid_propagate(0)
+        # Create left frame for label and listbox
+        left_frame = tk.Frame(impute_null_mean_window, bg='#1ac6ff', width=300, height=500)
+        #left_frame.columnconfigure((0,1), weight=1)
+        #left_frame.rowconfigure(0, weight=1)
+        left_frame.grid(row=0, column=0, padx=5, pady=5)
+        left_frame.grid_propagate(0)
 
-    # Create listbox and put in left frame
-    # Get column indexes
-    col_idxs = df.columns
-    # convert index to tuple
-    cols = tuple(col_idxs)
-    # listbox String Variable
-    col_list_var = tk.StringVar(value=cols)
-    # listbox
-    col_listbox = tk.Listbox(left_frame, listvariable=col_list_var, selectmode='extended')
-    # Display listbox in frame
-    col_listbox.grid(row=0, column=0, padx=0, pady=5, sticky='NS')
+        # Create right frame for buttons
+        right_frame = tk.Frame(impute_null_mean_window, bg='#1ac6ff', width=250, height=500)
+        #right_frame.columnconfigure((0,1), weight=1)
+        #right_frame.rowconfigure(0, weight=1)
+        right_frame.grid(row=0, column=1, padx=5, pady=5)
+        right_frame.grid_propagate(0)
 
-    # Create scrollbar for listbox
-    lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=col_listbox.yview)
-    lb_scroll.grid(row=0, column=1, pady=5, sticky='NS')
-    col_listbox['yscrollcommand'] = lb_scroll.set
+        # Create listbox and put in left frame
+        # Create series to find numeric columns with nulls: https://stackoverflow.com/a/36226137
+        s = df.select_dtypes(include=['float64', 'int64']).isnull().any()
+        # The series comprises of True and False values.  Use boolean indexing to get the
+        # indexes (i.e., the column names): https://stackoverflow.com/a/52173171
+        # convert the index to a list.
+        cols_list = s[s].index.to_list()
+        # convert list to tuple
+        cols_tuple = tuple(cols_list)
+        # listbox String Variable
+        col_list_var = tk.StringVar(value=cols_tuple)
+        # listbox
+        col_listbox = tk.Listbox(left_frame, listvariable=col_list_var, selectmode='extended')
+        # Display listbox in frame
+        col_listbox.grid(row=0, column=0, padx=0, pady=5, sticky='NS')
 
-    # Create a label to place at bottom of left frame 
-    # indicating multiple columns can be selected
-    listbox_label = ttk.Label(
-        left_frame, 
-        background='#1ac6ff',
-        font = ('Segoe UI', 12),
-        text='To select multiple columns,\nhold the Ctrl button'
-        )
-    listbox_label.grid(row=1, column=0, padx=0, pady=5, sticky='W')
+        # Create scrollbar for listbox
+        lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=col_listbox.yview)
+        lb_scroll.grid(row=0, column=1, pady=5, sticky='NS')
+        col_listbox['yscrollcommand'] = lb_scroll.set
 
-    # Create buttons and put in right frame
-    impute_with_mean_btn = ttk.Button(right_frame, text='Impute w/Mean', width=16, command='')
-    impute_with_mean_btn.grid(row=0, column=0, padx=5, pady=5, sticky='E')
+        # Create a label to place at bottom of left frame 
+        # indicating multiple columns can be selected
+        listbox_label = ttk.Label(
+            left_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 12),
+            text='To select multiple columns,\nhold the Ctrl button'
+            )
+        listbox_label.grid(row=1, column=0, padx=0, pady=5, sticky='W')
 
-    impute_with_mode_btn = ttk.Button(right_frame, text='Impute w/Mode', width=16, command='')
-    impute_with_mode_btn.grid(row=1, column=0, padx=5, pady=5, sticky='E')
+        # Create buttons and put in right frame
+        impute_with_mean_btn = ttk.Button(
+            right_frame,
+            text='Impute w/Mean',
+            width=16, command=lambda: impute_with_mmm('mean')
+            )
+        impute_with_mean_btn.grid(row=0, column=0, padx=5, pady=5, sticky='E')
 
-    impute_with_median_btn = ttk.Button(right_frame, text='Impute w/Median', width=16, command='')
-    impute_with_median_btn.grid(row=2, column=0, padx=5, pady=5, sticky='E')
+        impute_with_mode_btn = ttk.Button(
+            right_frame,
+            text='Impute w/Mode',
+            width=16, 
+            command=lambda: impute_with_mmm('mode')
+            )
+        impute_with_mode_btn.grid(row=1, column=0, padx=5, pady=5, sticky='E')
 
-    close_btn = ttk.Button(right_frame, text='Close', width=16, command='')
-    close_btn.grid(row=3, column=0, padx=5, pady=5, sticky='E')
+        impute_with_median_btn = ttk.Button(
+            right_frame, 
+            text='Impute w/Median', 
+            width=16, command=lambda: impute_with_mmm('median')
+            )
+        impute_with_median_btn.grid(row=2, column=0, padx=5, pady=5, sticky='E')
 
-    # Disable root window
-    impute_null_mean_window.grab_set()
+        close_btn = ttk.Button(
+            right_frame, 
+            text='Close', 
+            width=16, 
+            command=impute_null_mean_window.destroy
+            )
+        close_btn.grid(row=3, column=0, padx=5, pady=5, sticky='E')
 
-    
+        # Disable root window
+        impute_null_mean_window.grab_set()
+
+def open_binary_class_window():
+
+    # Check if dataframe is loaded.  If it's not loaded, notify user and exit function
+    if len(df) == 0: 
+        messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+    else:
+        def column_selection(event):
+            # Get the index of the listbox item (i.e. column name)
+            selected_index = col_listbox.curselection()
+            # Use index to get listbox item (i.e., column name)
+            column_name = (col_listbox.get(selected_index))
+            # Update the labels with the column values
+            col_val_1.set(a_dict[column_name][0])
+            col_val_2.set(a_dict[column_name][1])
+
+        # Create window
+        binary_class_window = tk.Toplevel(root, bg='#1ac6ff')
+        binary_class_window.geometry('650x500')
+        try:
+            binary_class_window.iconbitmap('./images/panda.ico')
+        except:
+            binary_class_window.iconbitmap(my_dir / './images/panda.ico')
+        binary_class_window.resizable(0,0)
+        binary_class_window.title('Binary Classification of Target')
+
+        # Create left frame for label and listbox
+        left_frame = tk.Frame(binary_class_window, bg='#1ac6ff', width=300, height=500)
+        #left_frame.columnconfigure((0,1), weight=1)
+        #left_frame.rowconfigure(0, weight=1)
+        left_frame.grid(row=0, column=0, padx=5, pady=5)
+        left_frame.grid_propagate(0)
+
+        # Create right frame for buttons
+        right_frame = tk.Frame(binary_class_window, bg='#1ac6ff', width=350, height=500)
+        #right_frame.columnconfigure((0,1), weight=1)
+        #right_frame.rowconfigure(0, weight=1)
+        right_frame.grid(row=0, column=1, padx=5, pady=5)
+        right_frame.grid_propagate(0)
+
+        # The following creates a listbox and puts it in the left frame
+        # - Get columns that are strings
+        str_cols = df.select_dtypes(include=['object']).columns.to_list()
+
+        # - From the columns that are strings, 
+        #   get the ones that have only two values
+        #   and put in a list, bin_cols
+        bin_cols = [col for col in str_cols if len(df[col].unique()) == 2]
+
+        # - Convert list to a tuple
+        cols_tuple = tuple(bin_cols)
+
+        # - Create listbox String variable
+        col_list_var = tk.StringVar(value=cols_tuple)
+
+        # - Create listbox, and set select mode to browse (single selection only)
+        col_listbox = tk.Listbox(left_frame, listvariable=col_list_var, selectmode='browse')
+
+        # - Display listbox in frame
+        col_listbox.grid(row=0, column=0, padx=0, pady=5, sticky='NS')
+
+        # - Bind listbox to column_selection function.  The enables the listbox to monitor
+        #   column selection and to change to label accordingly.
+        col_listbox.bind('<<ListboxSelect>>', column_selection)
+
+        # Create scrollbar for listbox
+        lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=col_listbox.yview)
+        lb_scroll.grid(row=0, column=1, pady=5, sticky='NS')
+        col_listbox['yscrollcommand'] = lb_scroll.set
+
+        # Create dictionary for columns and their unique values (e.g., 'yes' and 'no')
+        # This dictionary is needed to dynamically populate the labels as 
+        # the user selects a column from the listbox
+        a_dict = {}
+        for col in bin_cols:
+            a_dict[col] = df[col].unique().tolist()
+                
+        # The following creates labels to display column values
+        # - Create string variables for value #1 and value #2
+        col_val_1 = tk.StringVar()
+        col_val_2 = tk.StringVar()
+
+        # - Create labels and display in right frame
+        value1_label = ttk.Label(
+            right_frame, 
+            font = ('Segoe UI', 12),
+            textvariable=col_val_1,
+            width=15
+            )
+        value1_label.grid(row=0, column=0, padx=5, pady=5)
+
+        value2_label = ttk.Label(
+            right_frame, 
+            font = ('Segoe UI', 12),
+            textvariable=col_val_2,
+            width=15
+            )
+        value2_label.grid(row=1, column=0, padx=5, pady=5)
+
+
+
+        # Disable root window
+        binary_class_window.grab_set()
+
 ####################################
 #           FUNCTIONS END          #
 ####################################
@@ -344,7 +493,7 @@ top_frame.pack(padx=5, pady=0)
 top_frame.grid_propagate(0)
 
 # Create functionality frame, func_frame_1
-func_frame_1 = tk.Frame(root, bg='#1ac6ff', width=800, height=70)
+func_frame_1 = tk.Frame(root, bg='#1ac6ff', width=800, height=150)
 func_frame_1.columnconfigure((0,1,2), weight=1)
 func_frame_1.pack(padx=5, pady=0)
 func_frame_1.grid_propagate(0)
@@ -387,7 +536,7 @@ The remaining widgets are menu buttons that present the user with
 data cleaning options.  The menu buttons are added to the frame,
 func_frame_1
 '''
-# ---FIRST MENU BUTTON--- #
+# ---FIRST MENU BUTTON (MISSING DATA) --- #
 
 # Create "Missing Data" menu button
 mb_missing_data = ttk.Menubutton(func_frame_1, text='Missing Data', width=15)
@@ -416,7 +565,7 @@ mb_missing_data["menu"] = menu_missing_data
 # Display menu button in frame
 mb_missing_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
-# ---NEXT MENU BUTTON--- #
+# ---SECOND MENU BUTTON (DATAFRAME TASKS) --- #
 
 # Create DataFrame Tasks menu button
 mb_df_tasks = ttk.Menubutton(func_frame_1, text='DataFrame Tasks', width=15)
@@ -433,9 +582,9 @@ mb_df_tasks["menu"] = menu_df_tasks
 # Display menu button in frame
 mb_df_tasks.grid(row=0, column=1, padx=5, pady=5) 
 
-# ---NEXT MENU BUTTON--- #
+# ---THIRD MENU BUTTON (CLEAN NUMERICS) --- #
 
-# Create Clean Numerics data menu button
+# Create Clean Numerics menu button
 mb_clean_numeric = ttk.Menubutton(func_frame_1, text='Clean Numerics', width=15)
 # Create Clean Numerics menu
 menu_clean_numeric = tk.Menu(mb_clean_numeric, tearoff=False)
@@ -446,6 +595,23 @@ menu_clean_numeric.add_command(
 # Associate menu with menu button
 mb_clean_numeric["menu"] = menu_clean_numeric 
 # Display menu button in frame
-mb_clean_numeric.grid(row=0, column=2, padx=5, pady=5, sticky='E') 
+mb_clean_numeric.grid(row=0, column=2, padx=5, pady=5, sticky='E')
+
+# ---FOURTH MENU BUTTON (CATEGORIZE DATA) --- #
+
+# Create Categorize Data menu button
+mb_categorize_data = ttk.Menubutton(func_frame_1, text='Categorize Data', width=15)
+# Create Categorize Data menu
+menu_categorize_data = tk.Menu(mb_categorize_data, tearoff=False)
+# Create Target Classfication (Binary) menu option
+menu_categorize_data.add_command(
+    label='Target Classification (Binary)', 
+    font=("Segoe UI", 15), 
+    command=open_binary_class_window)
+
+# Associate menu with menu button
+mb_categorize_data["menu"] = menu_categorize_data 
+# Display menu button in frame
+mb_categorize_data.grid(row=1, column=0, padx=5, pady=10, sticky='W') 
 
 root.mainloop()
