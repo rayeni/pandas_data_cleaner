@@ -241,6 +241,7 @@ def open_drop_cols_window():
 
 def open_impute_nulls_window_mean():
     '''impute nulls with mean, median, or mode'''
+    global df
     # Check if dataframe is loaded.  If it's not loaded, notify user and exit function
     if len(df) == 0: 
         messagebox.showerror(title="No Data Present", message='Please load CSV file.')
@@ -355,6 +356,7 @@ def open_impute_nulls_window_mean():
         impute_null_mean_window.grab_set()
 
 def open_binary_class_window():
+    global df
 
     # Check if dataframe is loaded.  If it's not loaded, notify user and exit function
     if len(df) == 0: 
@@ -368,6 +370,9 @@ def open_binary_class_window():
             # Update the labels with the column values
             col_val_1.set(a_dict[column_name][0])
             col_val_2.set(a_dict[column_name][1])
+        
+        def category_selection(event):
+            pass
 
         # Create window
         binary_class_window = tk.Toplevel(root, bg='#1ac6ff')
@@ -378,6 +383,11 @@ def open_binary_class_window():
             binary_class_window.iconbitmap(my_dir / './images/panda.ico')
         binary_class_window.resizable(0,0)
         binary_class_window.title('Binary Classification of Target')
+
+        # Set combobox font for the window.  
+        # https://stackoverflow.com/a/28940421
+        cb_font = font.Font(family="Segoe UI",size=13)
+        binary_class_window.option_add("*Font", cb_font)     
 
         # Create left frame for label and listbox
         left_frame = tk.Frame(binary_class_window, bg='#1ac6ff', width=300, height=500)
@@ -409,7 +419,12 @@ def open_binary_class_window():
         col_list_var = tk.StringVar(value=cols_tuple)
 
         # - Create listbox, and set select mode to browse (single selection only)
-        col_listbox = tk.Listbox(left_frame, listvariable=col_list_var, selectmode='browse')
+        col_listbox = tk.Listbox(
+            left_frame, 
+            listvariable=col_list_var, 
+            selectmode='browse',
+            exportselection=False
+            )
 
         # - Display listbox in frame
         col_listbox.grid(row=0, column=0, padx=0, pady=5, sticky='NS')
@@ -431,13 +446,15 @@ def open_binary_class_window():
             a_dict[col] = df[col].unique().tolist()
                 
         # The following creates labels to display column values
+        #
         # - Create string variables for value #1 and value #2
         col_val_1 = tk.StringVar()
         col_val_2 = tk.StringVar()
 
         # - Create labels and display in right frame
         value1_label = ttk.Label(
-            right_frame, 
+            right_frame,
+            background='#ffffff',
             font = ('Segoe UI', 12),
             textvariable=col_val_1,
             width=15
@@ -445,14 +462,48 @@ def open_binary_class_window():
         value1_label.grid(row=0, column=0, padx=5, pady=5)
 
         value2_label = ttk.Label(
-            right_frame, 
+            right_frame,
+            background='#ffffff',
             font = ('Segoe UI', 12),
             textvariable=col_val_2,
             width=15
             )
         value2_label.grid(row=1, column=0, padx=5, pady=5)
 
+        # The following creates comboboxes to hold binary values for target column
+        #
+        # - Refernce the following variables that were created outside of this function
+        #   immediately after the creation of the root window.
 
+        global selected_category_0 # references the global IntVar
+        global selected_category_1 # references the global IntVar
+        
+        # - Create first combobox to hold category and display it in right_frame
+        cb_category_0 = ttk.Combobox(
+            right_frame,
+            textvariable=selected_category_0,
+            values=(0, 1),
+            state='readonly',
+            width=2,
+            exportselection=False
+            )
+        cb_category_0.current(0)
+        cb_category_0.grid(row=0, column=1, padx=5, pady=5)
+
+        # - Create second combobox to hold category and display in right_frame
+        cb_category_1 = ttk.Combobox(
+            right_frame,
+            textvariable=selected_category_1,
+            values=(0, 1),
+            state='readonly',
+            width=2,
+            exportselection=False
+            )
+        cb_category_1.current(1)
+        cb_category_1.grid(row=1, column=1, padx=5, pady=5)
+
+        # - Bind clickboxes to functions
+        cb_category_0.bind('<<ComboboxSelected>>', category_selection)
 
         # Disable root window
         binary_class_window.grab_set()
@@ -476,6 +527,20 @@ root.resizable(False, False)
 
 # Set global font.  Doesn't apply to fields.  
 font.nametofont('TkDefaultFont').configure(size=15)
+
+# Set the following global variable to hold iniital values 
+# in the comboboxes that are created in the 
+# open_binary_class_window function. 
+# Normally, these IntVars would be defined in the
+# aforementioned function.  However, due to 
+# garbage collection, the default values are
+# erased program exits the function when these variables
+# are defined in the function.
+# Explnation can be found at: https://stackoverflow.com/a/6879450
+
+selected_category_0 = tk.IntVar() # referenced in open_binary_class_window function
+selected_category_1 = tk.IntVar() # referenced in open_binary_class_window function
+
 
 ####################################
 #            ROOT FRAMES           #
