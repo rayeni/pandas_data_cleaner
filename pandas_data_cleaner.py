@@ -371,9 +371,23 @@ def open_binary_class_window():
             col_val_1.set(a_dict[column_name][0])
             col_val_2.set(a_dict[column_name][1])
         
-        def category_selection(event):
-            pass
+        def category_selection_0(event):
+            if selected_category_0.get() == 0:
+                selected_category_1.set(1)
+            elif selected_category_0.get() == 1:
+                selected_category_1.set(0)
 
+        def category_selection_1(event):
+            if selected_category_1.get() == 0:
+                selected_category_0.set(1)
+            elif selected_category_1.get() == 1:
+                selected_category_0.set(0)
+
+        def categorize_target(target_col, value_1, category_1, value_2, category_2):
+            global df
+            df[target_col] = df[target_col].map({value_1: category_1, value_2: category_2})
+
+                
         # Create window
         binary_class_window = tk.Toplevel(root, bg='#1ac6ff')
         binary_class_window.geometry('650x500')
@@ -503,8 +517,23 @@ def open_binary_class_window():
         cb_category_1.grid(row=1, column=1, padx=5, pady=5)
 
         # - Bind clickboxes to functions
-        cb_category_0.bind('<<ComboboxSelected>>', category_selection)
+        cb_category_0.bind('<<ComboboxSelected>>', category_selection_0)
+        cb_category_1.bind('<<ComboboxSelected>>', category_selection_1)
 
+        # The following creates a button to categorize target values
+        categorize_btn = ttk.Button(
+            right_frame,
+            text='Categorize Target',
+            width=16,
+            command=lambda: categorize_target(
+                col_listbox.get(col_listbox.curselection()),
+                col_val_1.get(), 
+                selected_category_0.get(), 
+                col_val_2.get(),
+                selected_category_1.get())
+                )
+
+        categorize_btn.grid(row=2, column=0, padx=5, pady=5)
         # Disable root window
         binary_class_window.grab_set()
 
