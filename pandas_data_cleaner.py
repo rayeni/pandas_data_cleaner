@@ -43,6 +43,7 @@ class PandaDataCleaner(tk.Tk):
         self.geometry("800x600")
         # Disable resizing window
         self.resizable(False, False)
+        self.configure(bg='#1ac6ff')
 
         # Create logo frame
         logo_frame = tk.Frame(self, bg='#1ac6ff', width=800, height=70)
@@ -100,10 +101,10 @@ class PandaDataCleaner(tk.Tk):
         data cleaning options.  The menu buttons are added to the frame,
         func_frame_1
         '''
-        # ---FIRST MENU BUTTON (MISSING DATA) --- #
+        # ---FIRST MENU BUTTON (MISSING DATA), First Row, First Column--- #
 
         # Create "Missing Data" menu button
-        mb_missing_data = ttk.Menubutton(func_frame_1, text='Missing Data', width=15)
+        mb_missing_data = ttk.Menubutton(func_frame_1, text='Fix Missing Data', width=15)
         # Create "Missing Data" menu
         menu_missing_data = tk.Menu(mb_missing_data, tearoff=False) 
         # Create "Drop nulls" menu option
@@ -111,6 +112,7 @@ class PandaDataCleaner(tk.Tk):
             label='Drop Nulls (All)', 
             font=("Segoe UI", menu_option_font), 
             command=self.drop_all_nulls)
+
         # Create "Fill NA (All)" menu option
         menu_missing_data.add_command(
             label='Fill Nulls (All)', 
@@ -129,7 +131,7 @@ class PandaDataCleaner(tk.Tk):
         # Display menu button in frame
         mb_missing_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
-        # ---SECOND MENU BUTTON (DATAFRAME TASKS) --- #
+        # ---SECOND MENU BUTTON (DATAFRAME TASKS), First Row, Second Column--- #
 
         # Create DataFrame Tasks menu button
         mb_df_tasks = ttk.Menubutton(func_frame_1, text='DataFrame Tasks', width=15)
@@ -146,10 +148,10 @@ class PandaDataCleaner(tk.Tk):
         # Display menu button in frame
         mb_df_tasks.grid(row=0, column=1, padx=5, pady=5) 
 
-        # ---THIRD MENU BUTTON (CLEAN NUMERICS) --- #
+        # ---THIRD MENU BUTTON (CLEAN NUMERICS) First Row, Third Column--- #
 
         # Create Clean Numerics menu button
-        mb_clean_numeric = ttk.Menubutton(func_frame_1, text='Clean Numerics', width=15)
+        mb_clean_numeric = ttk.Menubutton(func_frame_1, text='Clean Num Data', width=15)
         # Create Clean Numerics menu
         menu_clean_numeric = tk.Menu(mb_clean_numeric, tearoff=False)
         # Create Numeric Text -> Int menu option
@@ -167,7 +169,7 @@ class PandaDataCleaner(tk.Tk):
         # Display menu button in frame
         mb_clean_numeric.grid(row=0, column=2, padx=5, pady=5, sticky='E')
 
-        # ---FOURTH MENU BUTTON (CATEGORIZE DATA) --- #
+        # ---FOURTH MENU BUTTON (CATEGORIZE DATA), Second Row, First Column --- #
 
         # Create Categorize Data menu button
         mb_categorize_data = ttk.Menubutton(func_frame_1, text='Categorize Data', width=15)
@@ -191,6 +193,23 @@ class PandaDataCleaner(tk.Tk):
         mb_categorize_data["menu"] = menu_categorize_data 
         # Display menu button in frame
         mb_categorize_data.grid(row=1, column=0, padx=5, pady=10, sticky='W')
+
+        # ---FIFTH MENU BUTTON (Clean Strings), Second Row, Second Column--- #
+
+        # Create DataFrame Tasks menu button
+        mb_clean_string = ttk.Menubutton(func_frame_1, text='Clean String Data', width=15)
+        # Create DataFrame Tasks menu
+        menu_clean_string = tk.Menu(mb_clean_string, tearoff=False)
+        # Create Drop Columns menu option
+        menu_clean_string.add_command(
+            label='<>', 
+            font=("Segoe UI", menu_option_font), 
+            command='')
+
+        # Associate menu with menu button
+        mb_clean_string["menu"] = menu_clean_string
+        # Display menu button in frame
+        mb_clean_string.grid(row=1, column=1, padx=5, pady=5)
     
     def import_from_csv(self):
         '''Import csv file into dataframe'''
@@ -378,7 +397,7 @@ class DummifyColumns(tk.Toplevel):
 
         # Create scrollbar for listbox
         lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
-        lb_scroll.grid(row=0, column=1, pady=5, sticky='NS')
+        lb_scroll.grid(row=0, column=1, pady=5, sticky='NSEW')
         self.col_listbox['yscrollcommand'] = lb_scroll.set
         
         # Create a label to place at bottom of left frame 
@@ -482,10 +501,10 @@ class BinaryClassification(tk.Toplevel):
         # 2. From the columns that are strings, 
         #    get the ones that have only two values
         #    and put in a list, bin_cols
-        bin_cols = [col for col in str_cols if len(df[col].unique()) == 2]
+        self.bin_cols = [col for col in str_cols if len(df[col].unique()) == 2]
 
         # 3. Convert list to a tuple
-        cols_tuple = tuple(bin_cols)
+        cols_tuple = tuple(self.bin_cols)
 
         # 4. Create String variable for listbox
         col_list_var = tk.StringVar(value=cols_tuple)
@@ -501,7 +520,7 @@ class BinaryClassification(tk.Toplevel):
         # 6. Display listbox in frame
         self.col_listbox.grid(row=1, column=0, padx=0, pady=5, sticky='NS')
 
-        # 7. Bind listbox to column_selection function.  The enables the listbox to monitor
+        # 7. Bind listbox to column_selection function.  This enables the listbox to monitor
         #    column selection and to change to label accordingly.
         self.col_listbox.bind('<<ListboxSelect>>', self.column_selection)
 
@@ -514,9 +533,10 @@ class BinaryClassification(tk.Toplevel):
         # This dictionary is needed to dynamically populate the labels as 
         # the user selects a column from the listbox
         self.a_dict = {}
-        for col in bin_cols:
-            self.a_dict[col] = df[col].unique().tolist()
-        
+
+        # Populate the dictionary with columns and values
+        self.populate_dict()
+                
         # Header for Values
         values_header_label = ttk.Label(
             middle_frame,
@@ -629,6 +649,11 @@ class BinaryClassification(tk.Toplevel):
         # - Display categorize button in frame
         close_btn.grid(row=3, column=0, padx=5, pady=5, sticky='W')        
 
+    def populate_dict(self):
+        self.a_dict = {}
+        for col in self.bin_cols:
+            self.a_dict[col] = df[col].unique().tolist()
+
     def column_selection(self, event):
         # Get the index of the listbox item (i.e. column name)
         selected_index = self.col_listbox.curselection()
@@ -671,6 +696,7 @@ class DropColumns(tk.Toplevel):
             self.iconbitmap(my_dir / './images/panda.ico')
         self.resizable(0,0)
         self.title('Drop Columns')
+        self.configure(bg='#1ac6ff')
 
         # Create left frame for label and listbox
         left_frame = tk.Frame(self, bg='#1ac6ff', width=300, height=500)
@@ -742,6 +768,7 @@ class ImputeNullsWithMean(tk.Toplevel):
             self.iconbitmap(my_dir / './images/panda.ico')
         self.resizable(0,0)
         self.title('Impute Nulls with Mean')
+        self.configure(bg='#1ac6ff')
 
         # Create left frame for label and listbox
         left_frame = tk.Frame(self, bg='#1ac6ff', width=300, height=500)
@@ -753,26 +780,48 @@ class ImputeNullsWithMean(tk.Toplevel):
         right_frame.grid(row=0, column=1, padx=5, pady=5)
         right_frame.grid_propagate(0)
 
-        # Create listbox and put in left frame
-        # Create series to find numeric columns with nulls: https://stackoverflow.com/a/36226137
+        # The following creates a listbox and puts it in left frame
+        # 1. Create series to find numeric columns with nulls: https://stackoverflow.com/a/36226137
         s = df.select_dtypes(include=['float64', 'int64']).isnull().any()
-        # The series comprises of True and False values.  Use boolean indexing to get the
-        # indexes (i.e., the column names): https://stackoverflow.com/a/52173171
-        # convert the index to a list.
-        cols_list = s[s].index.to_list()
-        # convert list to tuple
-        cols_tuple = tuple(cols_list)
-        # listbox String Variable
+
+        # The above series (s) comprises of True and False values.  
+        
+        # 2. Use boolean indexing to get the indexes (i.e., the column names) and convert the index 
+        # to a list. https://stackoverflow.com/a/52173171
+        self.cols_list = s[s].index.to_list()
+
+        # 3. convert list to tuple
+        cols_tuple = tuple(self.cols_list)
+        
+        # 4. Create String variable for listbox and assign it the col_tuple variable
         col_list_var = tk.StringVar(value=cols_tuple)
-        # listbox
-        self.col_listbox = tk.Listbox(left_frame, listvariable=col_list_var, selectmode='extended')
-        # Display listbox in frame
+        
+        # 5. Create listbox
+        self.col_listbox = tk.Listbox(
+            left_frame, 
+            listvariable=col_list_var, 
+            selectmode='extended',
+            exportselection=False)
+        
+        # 6. Display listbox in frame
         self.col_listbox.grid(row=0, column=0, padx=0, pady=5, sticky='NS')
+
+        # 7. Bind listbox to column_selection function.  When a column is selected, in the listbox,
+        #    it's unique values are displayed in the text widget.
+        self.col_listbox.bind('<<ListboxSelect>>', self.column_selection)
 
         # Create scrollbar for listbox
         lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
-        lb_scroll.grid(row=0, column=1, pady=5, sticky='NS')
+        lb_scroll.grid(row=0, column=1, pady=5, sticky='NSEW')
         self.col_listbox['yscrollcommand'] = lb_scroll.set
+
+        # Create dictionary for columns and their unique values (e.g., 'yes' and 'no')
+        # This dictionary is needed to dynamically populate the labels as 
+        # the user selects a column from the listbox
+        self.a_dict = {}
+
+        # Populate the dictionary with columns and values
+        self.populate_dict()
 
         # Create a label to place at bottom of left frame 
         # indicating multiple columns can be selected
@@ -788,7 +837,7 @@ class ImputeNullsWithMean(tk.Toplevel):
         impute_with_mean_btn = ttk.Button(
             right_frame,
             text='Impute w/Mean',
-            width=16, command=lambda: impute_with_mmm(self, 'mean')
+            width=16, command=lambda: self.impute_with_mmm('mean')
             )
         impute_with_mean_btn.grid(row=0, column=0, padx=5, pady=5, sticky='E')
 
@@ -796,14 +845,14 @@ class ImputeNullsWithMean(tk.Toplevel):
             right_frame,
             text='Impute w/Mode',
             width=16, 
-            command=lambda: impute_with_mmm(self, 'mode')
+            command=lambda: self.impute_with_mmm('mode')
             )
         impute_with_mode_btn.grid(row=1, column=0, padx=5, pady=5, sticky='E')
 
         impute_with_median_btn = ttk.Button(
             right_frame, 
             text='Impute w/Median', 
-            width=16, command=lambda: impute_with_mmm(self, 'median')
+            width=16, command=lambda: self.impute_with_mmm('median')
             )
         impute_with_median_btn.grid(row=2, column=0, padx=5, pady=5, sticky='E')
 
@@ -813,26 +862,41 @@ class ImputeNullsWithMean(tk.Toplevel):
             width=16, 
             command=self.destroy
             )
-        close_btn.grid(row=3, column=0, padx=5, pady=5, sticky='E')          
+        close_btn.grid(row=3, column=0, padx=5, pady=5, sticky='E')
 
-        def impute_with_mmm(self, impute_method):
-            # Get the selected listbox items and put in a list
-            col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
-            col_str = ', '.join(col_list)
-            # Loop through col_list to impute each column with selected value (i.e., mean, mode, median)
-            for col in col_list:
-                if impute_method == 'mean':
-                    col_mean = round(df[col].mean(), 1)
-                    df[col].fillna(col_mean, inplace=True)
-                elif impute_method == 'mode':
-                    col_mode = round(df[col].mode(), 1)
-                    df[col].fillna(col_mode, inplace=True)
-                else:
-                    col_median = round(df[col].median(), 1)
-                    df[col].fillna(col_median, inplace=True)
-            # Send confirmation
-            messagebox.showinfo(title="Impute with MMM", 
-            message=f'Column(s) {col_str} imputed with {impute_method}.')
+    def populate_dict(self):
+        # clear dictionary
+        self.a_dict = {}
+        # populate dictionary with initial or updated keys (column names) and 
+        # values (list of unique column values)
+        for col in self.cols_list:
+            self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
+
+    def column_selection(self, event):
+        # Get the index of the listbox item (i.e. column name)
+        selected_index = self.col_listbox.curselection()
+        # Use index to get listbox item (i.e., column name)
+        column_name = (self.col_listbox.get(selected_index))
+        print(self.a_dict[column_name])
+
+    def impute_with_mmm(self, impute_method):
+        # Get the selected listbox items and put in a list
+        col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
+        col_str = ', '.join(col_list)
+        # Loop through col_list to impute each column with selected value (i.e., mean, mode, median)
+        for col in col_list:
+            if impute_method == 'mean':
+                col_mean = round(df[col].mean(), 1)
+                df[col].fillna(col_mean, inplace=True)
+            elif impute_method == 'mode':
+                col_mode = round(df[col].mode(), 1)
+                df[col].fillna(col_mode, inplace=True)
+            else:
+                col_median = round(df[col].median(), 1)
+                df[col].fillna(col_median, inplace=True)
+        # Send confirmation
+        messagebox.showinfo(title="Impute with MMM", 
+        message=f'Column(s) {col_str} imputed with {impute_method}.')
 
 
 class FillAllNullsWindow(tk.Toplevel):
@@ -849,6 +913,7 @@ class FillAllNullsWindow(tk.Toplevel):
             self.iconbitmap(my_dir / './images/panda.ico')
         self.resizable(0,0)
         self.title('Fill All Nulls in DataFrame')
+        self.configure(bg='#1ac6ff')
 
         # Create frame for window
         fillna_all_frame = tk.Frame(self, bg='#1ac6ff', width=600, height=120)
