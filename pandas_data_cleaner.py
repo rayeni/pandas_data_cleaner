@@ -526,7 +526,7 @@ class BinaryClassification(tk.Toplevel):
 
         # Create scrollbar for listbox
         lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
-        lb_scroll.grid(row=1, column=1, pady=5, sticky='NS')
+        lb_scroll.grid(row=1, column=1, pady=5, sticky='NSEW')
         self.col_listbox['yscrollcommand'] = lb_scroll.set
 
         # Create dictionary for columns and their unique values (e.g., 'yes' and 'no')
@@ -726,7 +726,7 @@ class DropColumns(tk.Toplevel):
 
         # Create scrollbar for listbox
         lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
-        lb_scroll.grid(row=0, column=1, pady=5, sticky='NS')
+        lb_scroll.grid(row=0, column=1, pady=5, sticky='NSEW')
         self.col_listbox['yscrollcommand'] = lb_scroll.set
         
         # Create a label to place at bottom of left frame 
@@ -761,7 +761,7 @@ class ImputeNullsWithMean(tk.Toplevel):
         super().__init__(root)
 
         # Set window properties
-        self.geometry('550x500')
+        self.geometry('550x650')
         try:
             self.iconbitmap('./images/panda.ico')
         except:
@@ -770,13 +770,14 @@ class ImputeNullsWithMean(tk.Toplevel):
         self.title('Impute Nulls with Mean')
         self.configure(bg='#1ac6ff')
 
-        # Create left frame for label and listbox
-        left_frame = tk.Frame(self, bg='#1ac6ff', width=300, height=500)
+        # Create left frame for listbox
+        left_frame = tk.Frame(self, bg='#1ac6ff', width=300, height=650)
         left_frame.grid(row=0, column=0, padx=5, pady=5)
         left_frame.grid_propagate(0)
+        left_frame.grid_columnconfigure(0, weight=1)
 
         # Create right frame for buttons
-        right_frame = tk.Frame(self, bg='#1ac6ff', width=250, height=500)
+        right_frame = tk.Frame(self, bg='#1ac6ff', width=250, height=650)
         right_frame.grid(row=0, column=1, padx=5, pady=5)
         right_frame.grid_propagate(0)
 
@@ -799,12 +800,13 @@ class ImputeNullsWithMean(tk.Toplevel):
         # 5. Create listbox
         self.col_listbox = tk.Listbox(
             left_frame, 
+            #width=15,
             listvariable=col_list_var, 
-            selectmode='extended',
+            selectmode='browse',
             exportselection=False)
         
         # 6. Display listbox in frame
-        self.col_listbox.grid(row=0, column=0, padx=0, pady=5, sticky='NS')
+        self.col_listbox.grid(row=1, column=0, padx=0, pady=5, sticky='NSEW')
 
         # 7. Bind listbox to column_selection function.  When a column is selected, in the listbox,
         #    it's unique values are displayed in the text widget.
@@ -812,8 +814,17 @@ class ImputeNullsWithMean(tk.Toplevel):
 
         # Create scrollbar for listbox
         lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
-        lb_scroll.grid(row=0, column=1, pady=5, sticky='NSEW')
+        lb_scroll.grid(row=1, column=1, pady=5, sticky='NSEW')
         self.col_listbox['yscrollcommand'] = lb_scroll.set
+
+        # Create a label to place above the listbox 
+        listbox_label = ttk.Label(
+            left_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Numeric Columns w/Nulls'
+            )
+        listbox_label.grid(row=0, column=0, padx=0, pady=5, sticky='W')
 
         # Create dictionary for columns and their unique values (e.g., 'yes' and 'no')
         # This dictionary is needed to dynamically populate the labels as 
@@ -823,15 +834,34 @@ class ImputeNullsWithMean(tk.Toplevel):
         # Populate the dictionary with columns and values
         self.populate_dict()
 
-        # Create a label to place at bottom of left frame 
-        # indicating multiple columns can be selected
-        listbox_label = ttk.Label(
+        # Create a label to place above the text widget 
+        # that indicates that the widget displays values of the selected column
+        column_values_label = ttk.Label(
             left_frame, 
             background='#1ac6ff',
-            font = ('Segoe UI', 12),
-            text='To select multiple columns,\nhold the Ctrl button'
+            font = ('Segoe UI', 14),
+            text='Column Values'
             )
-        listbox_label.grid(row=1, column=0, padx=0, pady=5, sticky='W')
+        column_values_label.grid(row=2, column=0, padx=0, pady=5, sticky='W')
+
+        # Create a text widget to present the values when a column is selected.
+        # Displaying values gives the user more insight into which impute method to use.
+        self.column_values_text = tk.Text(left_frame, font=("Segoe UI", 14), height=4)
+        self.column_values_text.grid(row=3, column=0, padx=0, pady=5, sticky='NSEW')
+        
+        # Create scrollbar for text widget
+        text_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.column_values_text.yview)
+        text_scroll.grid(row=3, column=1, pady=5, sticky='NSEW')
+        self.column_values_text['yscrollcommand'] = text_scroll.set
+
+        # Create a label to place above the action buttons 
+        action_label = ttk.Label(
+            right_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Action'
+            )
+        action_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
         # Create buttons and put in right frame
         impute_with_mean_btn = ttk.Button(
@@ -839,7 +869,7 @@ class ImputeNullsWithMean(tk.Toplevel):
             text='Impute w/Mean',
             width=16, command=lambda: self.impute_with_mmm('mean')
             )
-        impute_with_mean_btn.grid(row=0, column=0, padx=5, pady=5, sticky='E')
+        impute_with_mean_btn.grid(row=1, column=0, padx=5, pady=5, sticky='E')
 
         impute_with_mode_btn = ttk.Button(
             right_frame,
@@ -847,14 +877,14 @@ class ImputeNullsWithMean(tk.Toplevel):
             width=16, 
             command=lambda: self.impute_with_mmm('mode')
             )
-        impute_with_mode_btn.grid(row=1, column=0, padx=5, pady=5, sticky='E')
+        impute_with_mode_btn.grid(row=2, column=0, padx=5, pady=5, sticky='E')
 
         impute_with_median_btn = ttk.Button(
             right_frame, 
             text='Impute w/Median', 
             width=16, command=lambda: self.impute_with_mmm('median')
             )
-        impute_with_median_btn.grid(row=2, column=0, padx=5, pady=5, sticky='E')
+        impute_with_median_btn.grid(row=3, column=0, padx=5, pady=5, sticky='E')
 
         close_btn = ttk.Button(
             right_frame, 
@@ -862,7 +892,7 @@ class ImputeNullsWithMean(tk.Toplevel):
             width=16, 
             command=self.destroy
             )
-        close_btn.grid(row=3, column=0, padx=5, pady=5, sticky='E')
+        close_btn.grid(row=4, column=0, padx=5, pady=5, sticky='E')
 
     def populate_dict(self):
         # clear dictionary
@@ -873,11 +903,28 @@ class ImputeNullsWithMean(tk.Toplevel):
             self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
 
     def column_selection(self, event):
-        # Get the index of the listbox item (i.e. column name)
+        # Get the index of the listbox item
         selected_index = self.col_listbox.curselection()
         # Use index to get listbox item (i.e., column name)
         column_name = (self.col_listbox.get(selected_index))
-        print(self.a_dict[column_name])
+        # get columns values
+        list_of_values = self.a_dict[column_name]
+        # Enable text widget
+        self.column_values_text.config(state="normal")
+        # Delete any text that may be in text widget
+        self.column_values_text.delete("1.0","end")
+        # Enter column name into to text widget
+        self.column_values_text.insert(END, column_name + ' Values:  ')
+        # Enter column values into text widget
+        for value in list_of_values:
+            self.column_values_text.insert(END, str(value) + ', ')
+        # Delete ending space from text widget
+        self.column_values_text.delete("end-2c")
+        # Delete ending comma from text widget
+        self.column_values_text.delete("end-2c")
+        # Disable text widget
+        self.column_values_text.config(state="disabled")
+
 
     def impute_with_mmm(self, impute_method):
         # Get the selected listbox items and put in a list
@@ -888,12 +935,15 @@ class ImputeNullsWithMean(tk.Toplevel):
             if impute_method == 'mean':
                 col_mean = round(df[col].mean(), 1)
                 df[col].fillna(col_mean, inplace=True)
+                self.populate_dict()
             elif impute_method == 'mode':
                 col_mode = round(df[col].mode(), 1)
                 df[col].fillna(col_mode, inplace=True)
+                self.populate_dict()
             else:
                 col_median = round(df[col].median(), 1)
                 df[col].fillna(col_median, inplace=True)
+                self.populate_dict()
         # Send confirmation
         messagebox.showinfo(title="Impute with MMM", 
         message=f'Column(s) {col_str} imputed with {impute_method}.')
