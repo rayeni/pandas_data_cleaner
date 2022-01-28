@@ -800,7 +800,6 @@ class ImputeNullsWithMean(tk.Toplevel):
         # 5. Create listbox
         self.col_listbox = tk.Listbox(
             left_frame, 
-            #width=15,
             listvariable=col_list_var, 
             selectmode='browse',
             exportselection=False)
@@ -925,7 +924,6 @@ class ImputeNullsWithMean(tk.Toplevel):
         # Disable text widget
         self.column_values_text.config(state="disabled")
 
-
     def impute_with_mmm(self, impute_method):
         # Get the selected listbox items and put in a list
         col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
@@ -936,14 +934,17 @@ class ImputeNullsWithMean(tk.Toplevel):
                 col_mean = round(df[col].mean(), 1)
                 df[col].fillna(col_mean, inplace=True)
                 self.populate_dict()
+                self.column_selection(None)
             elif impute_method == 'mode':
                 col_mode = round(df[col].mode(), 1)
-                df[col].fillna(col_mode, inplace=True)
+                df[col].fillna(col_mode.tail(1).item(), inplace=True)
                 self.populate_dict()
+                self.column_selection(None)
             else:
                 col_median = round(df[col].median(), 1)
                 df[col].fillna(col_median, inplace=True)
                 self.populate_dict()
+                self.column_selection(None)
         # Send confirmation
         messagebox.showinfo(title="Impute with MMM", 
         message=f'Column(s) {col_str} imputed with {impute_method}.')
