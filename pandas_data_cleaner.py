@@ -926,28 +926,29 @@ class ImputeNullsWithMean(tk.Toplevel):
 
     def impute_with_mmm(self, impute_method):
         # Get the selected listbox items and put in a list
+        impute_value = None
         col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
         col_str = ', '.join(col_list)
         # Loop through col_list to impute each column with selected value (i.e., mean, mode, median)
         for col in col_list:
             if impute_method == 'mean':
-                col_mean = round(df[col].mean(), 1)
-                df[col].fillna(col_mean, inplace=True)
+                impute_value = round(df[col].mean(), 1)
+                df[col].fillna(impute_value, inplace=True)
                 self.populate_dict()
                 self.column_selection(None)
             elif impute_method == 'mode':
-                col_mode = round(df[col].mode(), 1)
-                df[col].fillna(col_mode.tail(1).item(), inplace=True)
+                impute_value = round(df[col].mode().tail(1).item(), 1)
+                df[col].fillna(impute_value, inplace=True)
                 self.populate_dict()
                 self.column_selection(None)
             else:
-                col_median = round(df[col].median(), 1)
-                df[col].fillna(col_median, inplace=True)
+                impute_value = round(df[col].median(), 1)
+                df[col].fillna(impute_value, inplace=True)
                 self.populate_dict()
                 self.column_selection(None)
         # Send confirmation
         messagebox.showinfo(title="Impute with MMM", 
-        message=f'Column(s) {col_str} imputed with {impute_method}.')
+        message=f'Column(s) {col_str} imputed with a {impute_method} of {impute_value}.')
 
 
 class FillAllNullsWindow(tk.Toplevel):
