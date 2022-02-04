@@ -1,4 +1,5 @@
 # Library for numerical analysis
+from tkinter.constants import WORD
 import numpy as np
 # Library for data management
 import pandas as pd
@@ -160,9 +161,9 @@ class PandaDataCleaner(tk.Tk):
             font=('Segoe UI', menu_option_font),
             command='')
         menu_clean_numeric.add_command(
-            label='Remove % Sign',
+            label='Remove % Signs',
             font=('Segoe UI', menu_option_font),
-            command='') 
+            command=self.open_remove_pcts_window) 
 
         # Associate menu with menu button
         mb_clean_numeric["menu"] = menu_clean_numeric 
@@ -345,6 +346,237 @@ class PandaDataCleaner(tk.Tk):
         else:
             window = DummifyColumns(self)
             window.grab_set()
+
+    def open_remove_pcts_window(self):
+        '''Open Remove Percents window'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Check if dataframe is loaded. If it's not loaded exit drop operation
+        if len(df) == 0:
+            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+        else:
+            window = RemovePercents(self)
+            window.grab_set()
+
+class RemovePercents(tk.Toplevel):
+    # Set df variable as global variable to enable all functions to modify it
+    global df
+
+    def __init__(self, root):
+        super().__init__(root)
+
+        # Set window properties
+        self.geometry('550x650')
+        try:
+            self.iconbitmap('./images/panda.ico')
+        except:
+            self.iconbitmap(my_dir / './images/panda.ico')
+        self.resizable(0,0)
+        self.title('Remove Percent Signs')
+        self.configure(bg='#1ac6ff')
+
+        # Create left frame for listbox
+        left_frame = tk.Frame(self, bg='#1ac6ff', width=300, height=650)
+        left_frame.grid(row=0, column=0, padx=5, pady=5)
+        left_frame.grid_propagate(0)
+        left_frame.grid_columnconfigure(0, weight=1)
+
+        # Create right frame for buttons
+        right_frame = tk.Frame(self, bg='#1ac6ff', width=250, height=650)
+        right_frame.grid(row=0, column=1, padx=5, pady=5)
+        right_frame.grid_propagate(0)
+
+        # The following creates a listbox and puts it in left frame
+        # 1. Get the list of columns with which to populate listbox
+        self.cols_list = self.get_col_list()
+
+        # 2. Convert list to tuple, because tk.StringVar takes a tuple argument.
+        cols_tuple = tuple(self.cols_list)
+        
+        # 3. Create tk.StringVar object for listbox and assign it to the col_list_var variable
+        col_list_var = tk.StringVar(value=cols_tuple)
+
+        # 4. Create listbox
+        self.col_listbox = tk.Listbox(
+            left_frame, 
+            listvariable=col_list_var, 
+            selectmode='browse',
+            exportselection=False)
+        
+        # 5. Display listbox in frame
+        self.col_listbox.grid(row=1, column=0, padx=0, pady=5, sticky='NSEW')
+
+        # 6. Bind listbox to column_selection function.  When a column is selected, in the listbox,
+        #    it's unique values are displayed in the text widget.
+        self.col_listbox.bind('<<ListboxSelect>>', self.column_selection)
+
+        # Create scrollbar for listbox
+        lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
+        lb_scroll.grid(row=1, column=1, pady=5, sticky='NSEW')
+        self.col_listbox['yscrollcommand'] = lb_scroll.set
+
+        # Create a label to place above the listbox 
+        listbox_label = ttk.Label(
+            left_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Numeric Cols with % Sign'
+            )
+        listbox_label.grid(row=0, column=0, padx=0, pady=5, sticky='W')
+
+        # Create dictionary for columns and their unique values (e.g., 'yes' and 'no')
+        # This dictionary is needed to dynamically populate the labels as 
+        # the user selects a column from the listbox
+        self.a_dict = {}
+
+        # Populate the dictionary with columns and values
+        self.populate_dict()
+
+        # Create a label to place above the text widget 
+        # that indicates that the widget displays values of the selected column
+        column_values_label = ttk.Label(
+            left_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Column Values'
+            )
+        column_values_label.grid(row=2, column=0, padx=0, pady=5, sticky='W')
+
+        # Create a text widget to present the values when a column is selected.
+        # Displaying values gives the user more insight into which impute method to use.
+        self.column_values_text = tk.Text(
+            left_frame, 
+            font=("Segoe UI", 14), 
+            height=4,
+            wrap=WORD)
+        self.column_values_text.grid(row=3, column=0, padx=0, pady=5, sticky='NSEW')
+        
+        # Create scrollbar for text widget
+        text_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.column_values_text.yview)
+        text_scroll.grid(row=3, column=1, pady=5, sticky='NSEW')
+        self.column_values_text['yscrollcommand'] = text_scroll.set
+
+        # Create a label to place above the action buttons 
+        action_label = ttk.Label(
+            right_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Action'
+            )
+        action_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+
+        # Create buttons and put in right frame
+        remove_pct_sign_btn = ttk.Button(
+            right_frame,
+            text='Remove % Sign',
+            width=16, command=lambda: self.remove_pct_sign()
+            )
+        remove_pct_sign_btn.grid(row=1, column=0, padx=5, pady=5, sticky='E')
+
+        close_btn = ttk.Button(
+            right_frame, 
+            text='Close', 
+            width=16, 
+            command=self.destroy
+            )
+        close_btn.grid(row=4, column=0, padx=5, pady=5, sticky='E')
+
+    def get_col_list(self):
+        # get all columns that are of type object
+        df1 = df.select_dtypes(include='object')
+    
+        # make copy of dataframe avoid SettingWithCopyWarning error
+        # https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+        df2 = df1.copy(deep=True)
+    
+        # get columns that contain a percent sign
+        # https://thispointer.com/pandas-select-dataframe-columns-containing-string/
+        mask = df2.apply(lambda col: col.str.contains('%').any(), axis=0)
+        df3 = df2.loc[: , mask]
+    
+        # drop percent sign from dataframe.
+        # this is needed to determine which columns contain majority numeric values
+        df4 = df3.copy(deep=True)
+        df4.replace('%', '', regex=True, inplace=True)
+    
+        # The presence of nulls will break the for loop, below
+        df4.dropna(inplace=True)
+    
+        # place the column names in a list
+        df4_col_list = df4.columns.to_list()
+    
+        # get total number of rows in df4.  This number is needed to determine
+        # the ratio of numeric values to total values in column
+        total_rows = df4.shape[0]
+    
+        # initialize a list to hold columns that have mostly numeric values and
+        # have percent symbol in its values
+        pct_cols = []
+    
+        # loop through df4_col_list to determine which column has a ratio of numeric values
+        # to total values greater than 90%.  Chances are that the column is a percent column
+        for col in df4_col_list:
+            # get the number of column values that are numeric
+            num_digits = df4[col].apply(lambda x: x.isnumeric()).sum()
+            # if column has a majority of numeric values, add to list
+            if num_digits / total_rows > 0.9:
+                pct_cols.append(col)
+
+        return pct_cols
+    
+    def column_selection(self, event):
+        # Get the index of the listbox item
+        selected_index = self.col_listbox.curselection()
+        # Use index to get listbox item (i.e., column name)
+        column_name = (self.col_listbox.get(selected_index))
+        # Get columns' values
+        list_of_values = self.a_dict[column_name]
+        # Enable text widget
+        self.column_values_text.config(state="normal")
+        # Delete any text that may be in text widget
+        self.column_values_text.delete("1.0","end")
+        # Enter column name into to text widget
+        self.column_values_text.insert(END, column_name + ' Values:  ')
+        # Enter column's values into text widget
+        for value in list_of_values:
+            self.column_values_text.insert(END, str(value) + ', ')
+        # Delete ending space from text widget
+        self.column_values_text.delete("end-2c")
+        # Delete ending comma from text widget
+        self.column_values_text.delete("end-2c")
+        # Disable text widget
+        self.column_values_text.config(state="disabled")
+
+    def populate_dict(self):
+        # clear dictionary
+        self.a_dict = {}
+        # populate dictionary with initial or updated keys (i.e., column names) and 
+        # values (i.e., list of unique column values)
+        for col in self.cols_list:
+            self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
+
+    def convert_pct_to_num(self, x):
+        x = x.replace('%','')
+        return int(x)/100
+
+    def remove_pct_sign(self):
+        # Get the selected listbox items and put in a list
+        col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
+        col_str = ', '.join(col_list)
+        # Loop through col_list to remove percent sign
+        for col in col_list:
+            df[col] = df[col].apply(self.convert_pct_to_num)
+        
+        # Update dictionary of column's values
+        self.populate_dict()
+        # Update text widget to show the updated changes
+        self.column_selection(None)
+
+        # Send confirmation
+        messagebox.showinfo(title="Remove % Sign", 
+        message=f'Percent removed from Column(s) {col_str} values.')
 
 class DummifyColumns(tk.Toplevel):
 
@@ -791,10 +1023,10 @@ class ImputeNullsWithMean(tk.Toplevel):
         # to a list. https://stackoverflow.com/a/52173171
         self.cols_list = s[s].index.to_list()
 
-        # 3. convert list to tuple
+        # 3. Convert list to tuple, because tk.StringVar takes a tuple argument.
         cols_tuple = tuple(self.cols_list)
         
-        # 4. Create String variable for listbox and assign it the col_tuple variable
+        # 4. Create tk.StringVar object for listbox and assign it to the col_list_var variable
         col_list_var = tk.StringVar(value=cols_tuple)
         
         # 5. Create listbox
@@ -845,7 +1077,11 @@ class ImputeNullsWithMean(tk.Toplevel):
 
         # Create a text widget to present the values when a column is selected.
         # Displaying values gives the user more insight into which impute method to use.
-        self.column_values_text = tk.Text(left_frame, font=("Segoe UI", 14), height=4)
+        self.column_values_text = tk.Text(
+            left_frame, 
+            font=("Segoe UI", 14), 
+            height=4,
+            wrap=WORD)
         self.column_values_text.grid(row=3, column=0, padx=0, pady=5, sticky='NSEW')
         
         # Create scrollbar for text widget
@@ -896,8 +1132,8 @@ class ImputeNullsWithMean(tk.Toplevel):
     def populate_dict(self):
         # clear dictionary
         self.a_dict = {}
-        # populate dictionary with initial or updated keys (column names) and 
-        # values (list of unique column values)
+        # populate dictionary with initial or updated keys (i.e., column names) and 
+        # values (i.e., list of unique column values)
         for col in self.cols_list:
             self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
 
@@ -906,7 +1142,7 @@ class ImputeNullsWithMean(tk.Toplevel):
         selected_index = self.col_listbox.curselection()
         # Use index to get listbox item (i.e., column name)
         column_name = (self.col_listbox.get(selected_index))
-        # get columns values
+        # Get columns' values
         list_of_values = self.a_dict[column_name]
         # Enable text widget
         self.column_values_text.config(state="normal")
@@ -914,7 +1150,7 @@ class ImputeNullsWithMean(tk.Toplevel):
         self.column_values_text.delete("1.0","end")
         # Enter column name into to text widget
         self.column_values_text.insert(END, column_name + ' Values:  ')
-        # Enter column values into text widget
+        # Enter column's values into text widget
         for value in list_of_values:
             self.column_values_text.insert(END, str(value) + ', ')
         # Delete ending space from text widget
