@@ -197,15 +197,15 @@ class PandaDataCleaner(tk.Tk):
 
         # ---FIFTH MENU BUTTON (Clean Strings), Second Row, Second Column--- #
 
-        # Create DataFrame Tasks menu button
+        # Create Clean String Data menu button
         mb_clean_string = ttk.Menubutton(func_frame_1, text='Clean String Data', width=15)
-        # Create DataFrame Tasks menu
+        # Create Clean String Data menu
         menu_clean_string = tk.Menu(mb_clean_string, tearoff=False)
-        # Create Drop Columns menu option
+        # Create Remove Trailing/Leading Spaces menu option
         menu_clean_string.add_command(
-            label='<>', 
+            label='Remove Trailing/Leading Spaces', 
             font=("Segoe UI", menu_option_font), 
-            command='')
+            command=self.remove_trailing_leading_spaces)
 
         # Associate menu with menu button
         mb_clean_string["menu"] = menu_clean_string
@@ -281,6 +281,43 @@ class PandaDataCleaner(tk.Tk):
                 if question == 1:
                     df.dropna(inplace = True)
                     messagebox.showinfo(title="Drop Nulls", message=f'{num_of_nulls} nulls dropped.')
+    
+    def remove_trailing_leading_spaces(self):
+        '''Find and remove all trailing and leading spaces from strings'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Check if dataframe is loaded. If it's not loaded exit drop operation
+        if len(df) == 0: 
+            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+        else:
+            # Get all columns of type string/object and place in list
+            obj_cols_list = df.select_dtypes(include='object').columns.to_list()
+            
+            # Get the total number of values before inspection of leading and trailing spaces
+            total_before = sum([df[col].value_counts().sum()*df[col].value_counts().count() for col in obj_cols_list])
+
+            # Strip any leading or trailing space from values
+            for col in obj_cols_list:
+                df[col] = df[col].str.strip()
+
+            # Get the total number of values after the removal of leading and trailing spaces
+            total_after = sum([df[col].value_counts().sum()*df[col].value_counts().count() for col in obj_cols_list])
+
+            # Get the difference between number of values before and after
+            total_diff = total_before - total_after
+
+            # Notify user of result
+            if total_diff == 0:
+                messagebox.showinfo(title="Remove Trailing/Leading Spaces", 
+                message=f'NO trailing/leading spaces were found.')
+            elif total_diff == 1:
+                messagebox.showinfo(title="Remove Trailing/Leading Spaces", 
+                message=f'{total_diff} trailing/leading space has been removed.')
+            else:
+                messagebox.showinfo(title="Remove Trailing/Leading Spaces", 
+                message=f'{total_diff} trailing/leading spaces have been removed.')
 
     def open_fill_all_nulls_window(self):
         '''Open Fill All Nulls window'''
