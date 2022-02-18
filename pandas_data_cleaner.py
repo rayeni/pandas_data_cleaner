@@ -1,12 +1,16 @@
 # Library for numerical analysis
-from tkinter.constants import WORD
 import numpy as np
 # Library for data management
 import pandas as pd
 
+# Library for datetime check
+from datetime import datetime
+import io
+
 # Libraries for gui development
 import tkinter as tk
 import tkinter.font as font
+from tkinter.constants import WORD
 from tkinter import ttk, END, StringVar, IntVar, \
 messagebox, filedialog
 
@@ -156,10 +160,10 @@ class PandaDataCleaner(tk.Tk):
         # Create Clean Numerics menu
         menu_clean_numeric = tk.Menu(mb_clean_numeric, tearoff=False)
         # Create Numeric Text -> Int menu option
-        menu_clean_numeric.add_command(
-            label='Numeric Text -> Int',
-            font=('Segoe UI', menu_option_font),
-            command='')
+        #menu_clean_numeric.add_command(
+        #    label='Numeric Text -> Int',
+        #    font=('Segoe UI', menu_option_font),
+        #    command='')
         menu_clean_numeric.add_command(
             label='Remove % Signs',
             font=('Segoe UI', menu_option_font),
@@ -211,7 +215,29 @@ class PandaDataCleaner(tk.Tk):
         mb_clean_string["menu"] = menu_clean_string
         # Display menu button in frame
         mb_clean_string.grid(row=1, column=1, padx=5, pady=5)
-    
+
+        # ---SIXTH MENU BUTTON (DateTime) Second Row, Third Column--- #
+
+        # Create DateTime menu button
+        mb_datetime = ttk.Menubutton(func_frame_1, text='DateTime', width=15)
+        # Create DateTime menu
+        menu_datetime = tk.Menu(mb_clean_numeric, tearoff=False)
+        # Create Set Date to Index menu option
+        menu_datetime.add_command(
+            label='Set Date to Index',
+            font=('Segoe UI', menu_option_font),
+            command=self.date_to_index)
+        # Create Index -> DatetimeIndex menu option
+        menu_datetime.add_command(
+            label='Index -> DatetimeIndex',
+            font=('Segoe UI', menu_option_font),
+            command=self.index_to_datetimeindex)
+
+        # Associate menu with menu button
+        mb_datetime["menu"] = menu_datetime 
+        # Display menu button in frame
+        mb_datetime.grid(row=1, column=2, padx=5, pady=5, sticky='E')
+
     def import_from_csv(self):
         '''Import csv file into dataframe'''
 
@@ -281,7 +307,118 @@ class PandaDataCleaner(tk.Tk):
                 if question == 1:
                     df.dropna(inplace = True)
                     messagebox.showinfo(title="Drop Nulls", message=f'{num_of_nulls} nulls dropped.')
-    
+
+    def check_for_date_string(self, date_text):
+        '''
+        Check if text value is of format YYYY-MM-DD
+        https://stackoverflow.com/a/37045601
+        '''
+        try:
+            if date_text != datetime.strptime(date_text, "%Y-%m-%d").strftime('%Y-%m-%d'):
+                raise ValueError
+            return True
+        except ValueError:
+            return False
+
+    def get_dataframe_info(self):
+        '''
+        Get dataframe information
+        Store information in buffer
+        Return contents of buffer
+        '''
+        # StringIO object
+        buffer = io.StringIO()
+        # Get Dataframe information and place in buffer
+        df.info(buf=buffer)
+        # Get string from buffer
+        return buffer.getvalue()
+
+    def get_index_info(self, df_inf, start_marker, end_marker):
+        '''
+        Get current index information from dataframe info.
+        https://www.kite.com/python/answers/how-to-get-the-substring-between-two-markers-in-python
+        '''
+        # Get the starting point for substring (The line with Index info)
+        start = df_inf.find(start_marker) + len(start_marker)
+        # Get the ending point for substring
+        end = df_inf.find(end_marker)
+        # Get the substring
+        index_substring = df_inf[start:end]
+        # Return the substring in the form of a list
+        return index_substring.split()
+
+    def date_to_index(self):
+        '''Convert date column to index'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Check if dataframe is loaded. If it's not loaded exit drop operation
+        if len(df) == 0: 
+            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+        else:
+            # Get columns.
+            columns = df.columns.to_list()
+
+            if 'date' in columns:
+                df.set_index('date', inplace=True)
+                messagebox.showinfo(title="Set Date to Index",
+                message=f'The "date" column was set to index successfully.')
+            elif 'DATE' in columns:
+                df.set_index('DATE', inplace=True)
+                messagebox.showinfo(title="Set Date to Index",
+                message=f'The "DATE" column was set to index successfully.')
+            elif 'Date' in columns:
+                df.set_index('Date', inplace=True)
+                messagebox.showinfo(title="Set Date to Index",
+                message=f'The "Date" column was set to index successfully.')
+            else:
+                messagebox.showwarning(title="Set Date to Index",
+                message=f'Either a date column was set previously, or a "date" column was NOT found.')
+
+    def index_to_datetimeindex(self):
+        '''Check Index for datatime data. Convert Index to DatetimeIndex'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Check if dataframe is loaded. If it's not loaded exit drop operation
+        if len(df) == 0: 
+            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+        else:
+            # Get dataframe info
+            df_info = self.get_dataframe_info()
+            print("")
+            print(df_info)
+            # Get Index information BEFORE changing index.
+            index_info = self.get_index_info(df_info, "<class 'pandas.core.frame.DataFrame'>\n", "\nData")         
+            # Get information about list indices 0,3 and 5
+            index_type = index_info[0]
+            str_3_is_date = self.check_for_date_string(index_info[3])
+            str_5_is_date = self.check_for_date_string(index_info[5])
+
+            # Convert Index to DatetimeIndex
+            if str_3_is_date is True & str_5_is_date is True:
+                if index_type == 'Index:':
+                    df.index = pd.to_datetime(df.index)
+
+            # Get dataframe info
+            df_info = self.get_dataframe_info()
+
+            # Get Index information AFTER changing index.
+            index_info = self.get_index_info(df_info, "<class 'pandas.core.frame.DataFrame'>\n", "\nData")
+
+            # Get information about list indices 0
+            index_type = index_info[0]
+            
+            # Notify user of result
+            if index_type == "DatetimeIndex:":
+                messagebox.showinfo(title="Index to DatetimeIndex",
+                message=f'Index was converted DatetimeIndex successfully')
+            else:
+                messagebox.showwarning(title="Index to DatetimeIndex",
+                message=f'Index was NOT converted DatetimeIndex. Check index values.')
+
     def remove_trailing_leading_spaces(self):
         '''Find and remove all trailing and leading spaces from strings'''
 
