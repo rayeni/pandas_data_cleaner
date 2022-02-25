@@ -1,7 +1,6 @@
-# Library for numerical analysis
-import numpy as np
-# Library for data management
+# Libraries for data management and analysis
 import pandas as pd
+from sklearn.impute import KNNImputer
 
 # Library for datetime check
 from datetime import datetime
@@ -88,15 +87,56 @@ class PandaDataCleaner(tk.Tk):
         and to close the app are created here and added
         to the frame, top_frame
         '''
+        # ---FIRST MENU BUTTON (Import from CSV), Top Frame, First Row, First Column--- #
+
         # Create import button to import CSV file
-        import_data = ttk.Button(top_frame, text='Import from CSV', width=17, command=self.import_from_csv)
+        #import_data = ttk.Button(
+        #    top_frame, 
+        #    text='Import from CSV', 
+        #    width=17, 
+        #    command=self.import_from_csv)
+
         # Add import button to frame
-        import_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+        # import_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+
+        # Create "Import Data" menu button
+        mb_import_data = ttk.Menubutton(top_frame, text='Import Data', width=15)
+
+        # Create "Import Data" menu
+        menu_import_data = tk.Menu(mb_import_data, tearoff=False)
+
+        # Create "Import CSV" menu option
+        menu_import_data.add_command(
+            label='Import CSV', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.import_csv)
+
+        # Create "Import TSV" menu option
+        menu_import_data.add_command(
+            label='Import TSV', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.import_tsv)
+
+        # Create "Import Excel" menu option
+        menu_import_data.add_command(
+            label='Import Excel', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.import_excel)
+
+        # Associate menu with menu button
+        mb_import_data["menu"] = menu_import_data
+
+        # Display menu button in frame
+        mb_import_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+
+        # ---SECOND MENU BUTTON (Export to CSV), Top Frame, First Row, Second Column--- #
 
         # Create export button to export Dataframe to CSV file
         export_data = ttk.Button(top_frame, text='Export to CSV', width=17, command=self.export_to_csv)
         # Add export button to frame
         export_data.grid(row=0, column=1, padx=5, pady=5)
+
+        # ---THIRD MENU BUTTON (Export to CSV), Top Frame, First Row, Third Column--- #
 
         # Create close button to close application
         close_root = ttk.Button(top_frame, text='Close App', width=17, command=self.close_app)
@@ -142,9 +182,15 @@ class PandaDataCleaner(tk.Tk):
 
         # Create "Impute Nulls with Mean" menu option
         menu_missing_data.add_command(
-            label='Impute Nulls w/Mean', 
+            label='Impute w/Mean, Mode, Median', 
             font=("Segoe UI", menu_option_font), 
             command=self.open_impute_nulls_with_mean_window)
+
+        # Create "Impute with KNN" menu option
+        menu_missing_data.add_command(
+            label='Impute with KNN', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.impute_with_knn)
 
         # Associate menu with menu button
         mb_missing_data["menu"] = menu_missing_data
@@ -165,6 +211,12 @@ class PandaDataCleaner(tk.Tk):
             label='Drop Columns', 
             font=("Segoe UI", menu_option_font), 
             command=self.open_drop_cols_window)
+        
+        # Create Convert Column Headers to Lowercase menu option
+        menu_df_tasks.add_command(
+            label='Change Column Names to Lowercase', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.change_col_names_to_lowercase)        
 
         # Associate menu with menu button
         mb_df_tasks["menu"] = menu_df_tasks
@@ -270,7 +322,7 @@ class PandaDataCleaner(tk.Tk):
         # Display menu button in frame
         mb_datetime.grid(row=1, column=2, padx=5, pady=5, sticky='E')
 
-    def import_from_csv(self):
+    def import_csv(self):
         '''Import csv file into dataframe'''
 
         # Set df variable as global variable to enable all functions to modify it
@@ -279,7 +331,7 @@ class PandaDataCleaner(tk.Tk):
         # Get path/location of csv file to import
         csv_file = filedialog.askopenfilename(
             initialdir="./", 
-            title="Open CSV", 
+            title="Open CSV File", 
             filetypes=(("CSV Files", "*.csv"),("All Files","*.*")))
         
         # Read csv into global df variable
@@ -295,6 +347,48 @@ class PandaDataCleaner(tk.Tk):
         print()
         print(df.dtypes)
         print('REMOVE THESE PRINT STATEMENTS BEFORE PACKAGING APP FOR USE!!!')
+    
+    def import_tsv(self):
+        '''Import tsv file into dataframe'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Get path/location of tsv file to import
+        tsv_file = filedialog.askopenfilename(
+            initialdir="./", 
+            title="Open TSV File", 
+            filetypes=(("TSV Files", "*.tsv"),("All Files","*.*")))
+        
+        # Read tsv into global df variable
+        df = pd.read_csv(tsv_file, sep='\t')
+
+        # Give user confirmation that tsv file was imported.
+        if len(df) > 0:
+            messagebox.showinfo(title="Load TSV", message='TSV file loaded successfully.')
+        else:
+            messagebox.showerror(title='Error', message='Error loading TSV file.')
+    
+    def import_excel(self):
+        '''Import Excel file into dataframe'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Get path/location of Excel file to import
+        excel_file = filedialog.askopenfilename(
+            initialdir="./", 
+            title="Open Excel File", 
+            filetypes=(("Excel Files", "*.xlsx"),("All Files","*.*")))
+        
+        # Read Excel file into global df variable
+        df = pd.read_excel(excel_file)
+
+        # Give user confirmation that Excel file was imported.
+        if len(df) > 0:
+            messagebox.showinfo(title="Load Excel File", message='Excel file loaded successfully.')
+        else:
+            messagebox.showerror(title='Error', message='Error loading Exce; file.')    
 
     def export_to_csv(self):
         '''Export dataframe to csv file'''
@@ -331,6 +425,24 @@ class PandaDataCleaner(tk.Tk):
         if question == 1:
             self.destroy()
 
+    def change_col_names_to_lowercase(self):
+        '''Change column names to lowercase'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
+        if len(df) == 0:
+            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+        else:
+            # Rename column names
+            df.columns = df.columns.str.lower().str.replace(' ','_')
+            df.columns = df.columns.str.lower().str.replace('/','_')
+            # Notify user
+            messagebox.showinfo(
+                title="Change Column Names", 
+                message='Column names were changed to lowercase successfully.')
+
     def drop_all_nulls(self):
         '''Drop all nulls unconditionally'''
 
@@ -355,6 +467,48 @@ class PandaDataCleaner(tk.Tk):
                     df.dropna(inplace = True)
                     # Send confirmation of drop.
                     messagebox.showinfo(title="Drop Nulls", message=f'{num_of_nulls} nulls dropped.')
+
+    def impute_with_knn(self):
+        '''Use KNN Imputer to fill missing values'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+        
+        # Check if dataframe is loaded. If it's not loaded (len(df) == 0) exit drop operation
+        if len(df) == 0: 
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
+        # Check if there are any columns of type object
+        elif df.select_dtypes(include=['object']).shape[1] > 0:
+            messagebox.showerror(
+                title="Non-Numeric Column Exists", 
+                message='There are one or more non-numeric columns.  KNN requires numeric columns.'
+                )
+        else:
+            # Get number of nulls:
+            num_of_nulls = int(df.isnull().sum().sum())
+            # If there are no nulls, notify that there are no nulls.
+            if num_of_nulls == 0:
+                messagebox.showinfo(
+                    title='No Nulls to Impute', 
+                    message=f'There are no nulls to impute.')
+            else:
+                # Confirm with user to impute nulls
+                question = messagebox.askyesno(
+                    title="Impute Nulls",
+                    message=f"Impute {num_of_nulls} nulls? The process may take a few moments.")
+                # If user answers Yes, then impute nulls
+                if question == 1:
+                    # Create and initialize KNN imputation model
+                    impKNN = KNNImputer(n_neighbors=5)
+                    # Impute Nulls
+                    df = pd.DataFrame(impKNN.fit_transform(df),columns=df.columns)
+                    # Send confirmation.
+                    messagebox.showinfo(
+                        title="Impute Nulls", 
+                        message=f'{num_of_nulls} nulls imputed.')
 
     def check_for_date_string(self, date_text):
         '''
@@ -614,10 +768,22 @@ class PandaDataCleaner(tk.Tk):
 
         # Set df variable as global variable to enable all functions to modify it
         global df
+        
+        # Check for any object columns:
+        object_cols = df.select_dtypes(include='object')
+
+        # Check for any percent signs
+        percent_signs = object_cols.apply(lambda col: col.str.contains('%').any(), axis=0)
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
             messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+        # If there are no object columns, then exit
+        elif object_cols.shape[1] == 0:
+            messagebox.showinfo(title="No Object Columns", message='No object columns exist.')
+        # If there are no percent signs, then exit
+        elif percent_signs.any() == False:
+            messagebox.showinfo(title="No % Signs", message='No Percent Signs(%) exist.')
         # Open window
         else:
             window = RemovePercents(self)
@@ -1267,16 +1433,16 @@ class DropColumns(tk.Toplevel):
         #right_frame.grid_columnconfigure(0, weight=1)
         right_frame.grid_propagate(0)
 
-        # Create list box to place at top of left frame
-        # Get column indexes from the dataframe
+        # The following creates a list box
+        # 1. Get column indexes from the dataframe
         col_idxs = df.columns
-        # convert the index to a tuple
+        # 2. Convert the index to a tuple
         cols = tuple(col_idxs)
-        # listbox String Variable
+        # 3. Create listbox String Variable
         col_list_var = tk.StringVar(value=cols)
-        # listbox
+        # 4. Create listlistbox and place in left frame
         self.col_listbox = tk.Listbox(left_frame, listvariable=col_list_var, selectmode='extended')
-        # Display listbox in frame
+        # 5. Display listbox in frame
         self.col_listbox.grid(row=1, column=0, padx=0, pady=5, sticky='NS')
 
         # Create scrollbar for listbox
@@ -1294,10 +1460,18 @@ class DropColumns(tk.Toplevel):
         listbox_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
         # Create buttons and display in frame
-        dc_dropcols_btn = ttk.Button(right_frame, text='Drop Columns', width=15, command=lambda: drop_columns(self))
+        dc_dropcols_btn = ttk.Button(
+            right_frame, 
+            text='Drop Columns', 
+            width=15, 
+            command=lambda: drop_columns(self))
         dc_dropcols_btn.grid(row=1, column=0, padx=5, pady=5, sticky='EW')
 
-        dc_close_btn = ttk.Button(right_frame, text='Close', width=15, command=self.destroy)
+        dc_close_btn = ttk.Button(
+            right_frame, 
+            text='Close', 
+            width=15, 
+            command=self.destroy)
         dc_close_btn.grid(row=2, column=0, padx=5, pady=5, sticky='EW')
 
         # Create a label to place over buttons
@@ -1310,10 +1484,22 @@ class DropColumns(tk.Toplevel):
         listbox_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
         def drop_columns(self):
+            '''Drop columns in DataFrame'''
+
             # Get the selected listbox items and put in a list
             col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
+            
             # Drop selected column(s)
             df.drop(columns=col_list, inplace=True)
+
+            # Update listbox
+            # https://stackoverflow.com/a/42485391
+            # 1. Clear listbox
+            self.col_listbox.delete(0, END)
+            # 2. Repopulate listbox
+            for col in df.columns:
+                self.col_listbox.insert(END, col)
+
             # Send confirmation to user that column(s) was/were dropped
             messagebox.showinfo(title="Drop Columns", message=f'Column(s) {col_list} dropped.')
 
@@ -1506,7 +1692,7 @@ class ImputeNullsWithMean(tk.Toplevel):
         except:
             self.iconbitmap(my_dir / './images/panda.ico')
         self.resizable(0,0)
-        self.title('Impute Nulls with Mean')
+        self.title('Impute Nulls with Mean, Mode, Median')
         self.configure(bg='#1ac6ff')
 
         # Create left frame for listbox
@@ -1708,16 +1894,16 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
         except:
             self.iconbitmap(my_dir / './images/panda.ico')
         self.resizable(0,0)
-        self.title('Remove Rows with High Missing Values')
+        self.title('Remove Rows with High Number of Missing Values')
         self.configure(bg='#1ac6ff')
 
         # Create top frame for window
-        top_frame = tk.Frame(self, bg='#1ac6ff', width=400, height=60)
+        top_frame = tk.Frame(self, bg='#1ac6ff', width=400, height=55)
         top_frame.grid(row=0, column=0, padx=5, pady=5)
         top_frame.grid_propagate(0)
 
         # Create bottom frame for window
-        bottom_frame = tk.Frame(self, bg='#1ac6ff', width=400, height=60)
+        bottom_frame = tk.Frame(self, bg='#1ac6ff', width=400, height=65)
         bottom_frame.grid(row=1, column=0, padx=5, pady=5)
 
         # Create label and display in frame
@@ -1726,7 +1912,7 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
             background='#1ac6ff',
             width=32,
             font = ('Segoe UI', 14),
-            text='Percent threshold for missing values:'
+            text='Select % values missing threshold:'
             )
         remove_rows_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
