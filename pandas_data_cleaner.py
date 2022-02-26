@@ -1,21 +1,19 @@
-# Libraries for data management and analysis
+# Import libaries
 import pandas as pd
 from sklearn.impute import KNNImputer
 
-# Library for datetime check
 from datetime import datetime
 import io
 
-# Libraries for gui development
+import re
+
 import tkinter as tk
 import tkinter.font as font
 from tkinter.constants import WORD
 from tkinter import ttk, END, StringVar, IntVar, messagebox, filedialog
 
-# Library to create images
 from PIL import ImageTk, Image
 
-# Library to assist in finding files on windows machines
 from pathlib import Path
 
 # Windows only configuration to improve font resolution
@@ -32,7 +30,7 @@ df = pd.DataFrame()
 my_dir = Path(__file__).parent
 
 # Main application window
-class PandaDataCleaner(tk.Tk):
+class PandasDataCleaner(tk.Tk):
     def __init__(self):
         super().__init__()
 
@@ -290,6 +288,18 @@ class PandaDataCleaner(tk.Tk):
             font=("Segoe UI", menu_option_font), 
             command=self.remove_trailing_leading_spaces)
 
+        # Create Remove Special Characters menu option
+        menu_clean_string.add_command(
+            label='Remove Special Characters', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.remove_special_characters)
+
+        # Create Change Chars to Lowercase menu option
+        menu_clean_string.add_command(
+            label='Change Column Values to Lowercase', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.convert_to_lowercase)
+
         # Associate menu with menu button
         mb_clean_string["menu"] = menu_clean_string
 
@@ -339,9 +349,15 @@ class PandaDataCleaner(tk.Tk):
 
         # Give user confirmation that csv file was imported.
         if len(df) > 0:
-            messagebox.showinfo(title="Load CSV", message='CSV file loaded successfully.')
+            messagebox.showinfo(
+                title="Load CSV", 
+                message='CSV file loaded successfully.'
+                )
         else:
-            messagebox.showerror(title='Error', message='Error loading CSV file.')
+            messagebox.showerror(
+                title='Error', 
+                message='Error loading CSV file.'
+                )
         
         print(df.head())
         print()
@@ -365,9 +381,15 @@ class PandaDataCleaner(tk.Tk):
 
         # Give user confirmation that tsv file was imported.
         if len(df) > 0:
-            messagebox.showinfo(title="Load TSV", message='TSV file loaded successfully.')
+            messagebox.showinfo(
+                title="Load TSV", 
+                message='TSV file loaded successfully.'
+                )
         else:
-            messagebox.showerror(title='Error', message='Error loading TSV file.')
+            messagebox.showerror(
+                title='Error', 
+                message='Error loading TSV file.'
+                )
     
     def import_excel(self):
         '''Import Excel file into dataframe'''
@@ -386,9 +408,15 @@ class PandaDataCleaner(tk.Tk):
 
         # Give user confirmation that Excel file was imported.
         if len(df) > 0:
-            messagebox.showinfo(title="Load Excel File", message='Excel file loaded successfully.')
+            messagebox.showinfo(
+                title="Load Excel File", 
+                message='Excel file loaded successfully.'
+                )
         else:
-            messagebox.showerror(title='Error', message='Error loading Exce; file.')    
+            messagebox.showerror(
+                title='Error', 
+                message='Error loading Exce; file.'
+                )    
 
     def export_to_csv(self):
         '''Export dataframe to csv file'''
@@ -398,8 +426,10 @@ class PandaDataCleaner(tk.Tk):
         
         # Check if dataframe is loaded.  If not, notify user of error.
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", 
-            message='A dataframe was not created. Please load a CSV file.') 
+            messagebox.showerror(
+                title="No Data Present", 
+                message='A dataframe was not created. Please load a CSV file.'
+                ) 
         else:
             # Get name of csv file and where it should be exported from user
             csv_name = filedialog.asksaveasfilename(
@@ -411,7 +441,10 @@ class PandaDataCleaner(tk.Tk):
             df.to_csv(csv_name, index=False)
 
             # Confirmation of export to csv file
-            messagebox.showinfo(title="CSV Export", message='DataFrame exported to CSV.')
+            messagebox.showinfo(
+                title="CSV Export", 
+                message='DataFrame exported to CSV.'
+                )
 
     def close_app(self):
         '''Close application'''
@@ -433,7 +466,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present",
+                message='Please load CSV file.'
+                )
         else:
             # Rename column names
             df.columns = df.columns.str.lower().str.replace(' ','_')
@@ -441,7 +477,8 @@ class PandaDataCleaner(tk.Tk):
             # Notify user
             messagebox.showinfo(
                 title="Change Column Names", 
-                message='Column names were changed to lowercase successfully.')
+                message='Column names were changed to lowercase successfully.'
+                )
 
     def drop_all_nulls(self):
         '''Drop all nulls unconditionally'''
@@ -451,22 +488,34 @@ class PandaDataCleaner(tk.Tk):
         
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0) exit drop operation
         if len(df) == 0: 
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         else:
             # Get number of nulls:
             num_of_nulls = int(df.isnull().sum().sum())
             # If there are no nulls, notify that there are no nulls.
             if num_of_nulls == 0:
-                messagebox.showinfo(title='No Nulls to Drop', message=f'There are no nulls to drop.')
+                messagebox.showinfo(
+                    title='No Nulls to Drop', 
+                    message=f'There are no nulls to drop.'
+                    )
             else:
                 # Confirm with user to drop nulls
-                question = messagebox.askyesno("Drop Nulls", f"Drop {num_of_nulls} nulls?")
+                question = messagebox.askyesno(
+                    title="Drop Nulls", 
+                    message=f"Drop {num_of_nulls} nulls?"
+                    )
                 # If user answers Yes, then drop nulls
                 if question == 1:
                     # Drop nulls
                     df.dropna(inplace = True)
                     # Send confirmation of drop.
-                    messagebox.showinfo(title="Drop Nulls", message=f'{num_of_nulls} nulls dropped.')
+                    messagebox.showinfo(
+                        title="Drop Nulls", 
+                        message=f'{num_of_nulls} nulls dropped.'
+                        )
 
     def impute_with_knn(self):
         '''Use KNN Imputer to fill missing values'''
@@ -493,12 +542,14 @@ class PandaDataCleaner(tk.Tk):
             if num_of_nulls == 0:
                 messagebox.showinfo(
                     title='No Nulls to Impute', 
-                    message=f'There are no nulls to impute.')
+                    message=f'There are no nulls to impute.'
+                    )
             else:
                 # Confirm with user to impute nulls
                 question = messagebox.askyesno(
                     title="Impute Nulls",
-                    message=f"Impute {num_of_nulls} nulls? The process may take a few moments.")
+                    message=f"Impute {num_of_nulls} nulls? The process may take a few moments."
+                    )
                 # If user answers Yes, then impute nulls
                 if question == 1:
                     # Create and initialize KNN imputation model
@@ -508,7 +559,8 @@ class PandaDataCleaner(tk.Tk):
                     # Send confirmation.
                     messagebox.showinfo(
                         title="Impute Nulls", 
-                        message=f'{num_of_nulls} nulls imputed.')
+                        message=f'{num_of_nulls} nulls imputed.'
+                        )
 
     def check_for_date_string(self, date_text):
         '''
@@ -563,7 +615,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0: 
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         else:
             # Get columns.  
             columns = df.columns.to_list()
@@ -571,19 +626,27 @@ class PandaDataCleaner(tk.Tk):
             # Search for a date column in the list of columns
             if 'date' in columns:
                 df.set_index('date', inplace=True)
-                messagebox.showinfo(title="Set Date to Index",
-                message=f'The "date" column was set to index successfully.')
+                messagebox.showinfo(
+                    title="Set Date to Index",
+                    message=f'The "date" column was set to index successfully.'
+                    )
             elif 'DATE' in columns:
                 df.set_index('DATE', inplace=True)
-                messagebox.showinfo(title="Set Date to Index",
-                message=f'The "DATE" column was set to index successfully.')
+                messagebox.showinfo(
+                    title="Set Date to Index",
+                    message=f'The "DATE" column was set to index successfully.'
+                    )
             elif 'Date' in columns:
                 df.set_index('Date', inplace=True)
-                messagebox.showinfo(title="Set Date to Index",
-                message=f'The "Date" column was set to index successfully.')
+                messagebox.showinfo(
+                    title="Set Date to Index",
+                    message=f'The "Date" column was set to index successfully.'
+                    )
             else:
-                messagebox.showwarning(title="Set Date to Index",
-                message=f'Either a date column was set previously, or a "date" column was NOT found.')
+                messagebox.showwarning(
+                    title="Set Date to Index",
+                    message=f'Either a date column was set previously, or a "date" column was NOT found.'
+                    )
 
     def index_to_datetimeindex(self):
         '''Check Index for datatime data. Convert Index to DatetimeIndex'''
@@ -593,7 +656,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0: 
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         else:
             # Get dataframe info
             df_info = self.get_dataframe_info()
@@ -622,11 +688,15 @@ class PandaDataCleaner(tk.Tk):
             
             # Notify user of result
             if index_type == "DatetimeIndex:":
-                messagebox.showinfo(title="Index to DatetimeIndex",
-                message=f'Index was converted DatetimeIndex successfully')
+                messagebox.showinfo(
+                    title="Index to DatetimeIndex",
+                    message=f'Index was converted DatetimeIndex successfully'
+                    )
             else:
-                messagebox.showwarning(title="Index to DatetimeIndex",
-                message=f'Index was NOT converted DatetimeIndex. Check index values.')
+                messagebox.showwarning(
+                    title="Index to DatetimeIndex",
+                    message=f'Index was NOT converted DatetimeIndex. Check index values.'
+                    )
 
     def remove_trailing_leading_spaces(self):
         '''Find and remove all trailing and leading spaces from strings'''
@@ -636,7 +706,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0: 
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         else:
             # Get all columns of type string/object and place in list
             obj_cols_list = df.select_dtypes(include='object').columns.to_list()
@@ -656,14 +729,106 @@ class PandaDataCleaner(tk.Tk):
 
             # Notify user of result
             if total_diff == 0:
-                messagebox.showinfo(title="Remove Trailing/Leading Spaces", 
-                message=f'NO trailing/leading spaces were found.')
+                messagebox.showinfo(
+                    title="Remove Trailing/Leading Spaces", 
+                    message=f'NO trailing/leading spaces were found.'
+                    )
             elif total_diff == 1:
-                messagebox.showinfo(title="Remove Trailing/Leading Spaces", 
-                message=f'{total_diff} trailing/leading space has been removed.')
+                messagebox.showinfo(
+                    title="Remove Trailing/Leading Spaces", 
+                    message=f'{total_diff} trailing/leading space has been removed.'
+                    )
             else:
-                messagebox.showinfo(title="Remove Trailing/Leading Spaces", 
-                message=f'{total_diff} trailing/leading spaces have been removed.')
+                messagebox.showinfo(
+                    title="Remove Trailing/Leading Spaces", 
+                    message=f'{total_diff} trailing/leading spaces have been removed.'
+                    )
+
+    def rm_spec_chars_from_cols(self, x):
+        '''Remove special characters from columns'''
+
+        # try except is use here to handle any 
+        # NaNs that may exist and break application
+        try:
+            x = re.sub(r'[^a-zA-Z0-9\s]','',x)
+        except TypeError:
+            pass
+        
+        return x
+
+    def remove_special_characters(self):
+        '''Find and remove all special characters from strings'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Get all columns of type string/object and place in list
+        obj_cols_list = df.select_dtypes(include='object').columns.to_list()
+
+        # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
+        if len(df) == 0: 
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
+        elif len(obj_cols_list) == 0:
+            messagebox.showinfo(
+                title="Remove Special Characters", 
+                message='No string data is present.'
+                )
+        else:
+            # iterate over columns, and apply function to values
+            for col in obj_cols_list:
+                df[col] = df[col].apply(self.rm_spec_chars_from_cols)
+            
+            # Notify user of result
+            messagebox.showinfo(
+                title="Remove Special Characters", 
+                message=f'Special characters removed.'
+                )
+
+    def convert_cols_to_lowercase(self, x):
+        '''Convert column values to lower case'''
+
+        # try except is use here to handle any 
+        # NaNs that may exist and break application
+        try:
+            x = x.lower()
+        except AttributeError:
+            pass
+        
+        return x
+
+    def convert_to_lowercase(self):
+        '''Find and remove all special characters from strings'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Get all columns of type string/object and place in list
+        obj_cols_list = df.select_dtypes(include='object').columns.to_list()
+
+        # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
+        if len(df) == 0: 
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
+        elif len(obj_cols_list) == 0:
+            messagebox.showinfo(
+                title="Convert to Lowercase", 
+                message='No string data is present.'
+                )
+        else:
+            # iterate over columns, and apply function to values
+            for col in obj_cols_list:
+                df[col] = df[col].apply(self.convert_cols_to_lowercase)
+            
+            # Notify user of result
+            messagebox.showinfo(
+                title="Convert Strings to Lowercase", 
+                message=f'Column values converted to lowercase.'
+                )
 
     def open_remove_rows_with_x_nulls_window(self):
         '''Open Fill All Nulls window'''
@@ -673,7 +838,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # Open window
         else:
             window = RemoveRowsWithXNullsWindow(self)
@@ -687,7 +855,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # Open window
         else:
             window = FillAllNullsWindow(self)
@@ -701,7 +872,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # Open window
         else:
             window = FillForward(self)
@@ -715,7 +889,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # Open window
         else:
             window = ImputeNullsWithMean(self)
@@ -729,7 +906,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # Open window
         else:
             window = DropColumns(self)
@@ -743,7 +923,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # Open window
         else:
             window = BinaryClassification(self)
@@ -757,7 +940,10 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # Open window
         else:
             window = DummifyColumns(self)
@@ -777,13 +963,22 @@ class PandaDataCleaner(tk.Tk):
 
         # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
         if len(df) == 0:
-            messagebox.showerror(title="No Data Present", message='Please load CSV file.')
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
         # If there are no object columns, then exit
         elif object_cols.shape[1] == 0:
-            messagebox.showinfo(title="No Object Columns", message='No object columns exist.')
+            messagebox.showinfo(
+                title="No Object Columns", 
+                message='No object columns exist.'
+                )
         # If there are no percent signs, then exit
         elif percent_signs.any() == False:
-            messagebox.showinfo(title="No % Signs", message='No Percent Signs(%) exist.')
+            messagebox.showinfo(
+                title="No % Signs", 
+                message='No Percent Signs(%) exist.'
+                )
         # Open window
         else:
             window = RemovePercents(self)
@@ -1026,8 +1221,10 @@ class RemovePercents(tk.Toplevel):
         self.column_selection(None)
 
         # Send confirmation
-        messagebox.showinfo(title="Remove % Sign", 
-        message=f'Percent removed from Column(s) {col_str} values.')
+        messagebox.showinfo(
+            title="Remove % Sign", 
+            message=f'Percent removed from Column(s) {col_str} values.'
+            )
 
 class DummifyColumns(tk.Toplevel):
 
@@ -1141,7 +1338,10 @@ class DummifyColumns(tk.Toplevel):
         # Dummify columns
         df = pd.get_dummies(df,columns=col_list, drop_first=True)
         # Notify User
-        messagebox.showinfo(title="Dummify Columns", message='Columns dummified.')
+        messagebox.showinfo(
+            title="Dummify Columns", 
+            message='Columns dummified.'
+            )
         
     def dummify_columns_drop_first(self):
         '''Dummify columns with the drop_first option set to True'''
@@ -1154,7 +1354,10 @@ class DummifyColumns(tk.Toplevel):
         # Dummify columns with drop_first set to True
         df = pd.get_dummies(df,columns=col_list, drop_first=True)
         # Notify user
-        messagebox.showinfo(title="Dummify Columns", message='Columns dummified.')
+        messagebox.showinfo(
+            title="Dummify Columns", 
+            message='Columns dummified.'
+            )
 
 class BinaryClassification(tk.Toplevel):
 
@@ -1401,8 +1604,10 @@ class BinaryClassification(tk.Toplevel):
         global df
         df[target_col] = df[target_col].map({value_1: category_1, value_2: category_2})
 
-        messagebox.showinfo(title="Categorize Target", 
-        message=f'Target {target_col} categorized.')
+        messagebox.showinfo(
+            title="Categorize Target", 
+            message=f'Target {target_col} categorized.'
+            )
 
 class DropColumns(tk.Toplevel):
 
@@ -1501,7 +1706,10 @@ class DropColumns(tk.Toplevel):
                 self.col_listbox.insert(END, col)
 
             # Send confirmation to user that column(s) was/were dropped
-            messagebox.showinfo(title="Drop Columns", message=f'Column(s) {col_list} dropped.')
+            messagebox.showinfo(
+                title="Drop Columns", 
+                message=f'Column(s) {col_list} dropped.'
+                )
 
 class FillForward(tk.Toplevel):
     # Set df variable as global variable to enable all functions to modify it
@@ -1674,8 +1882,10 @@ class FillForward(tk.Toplevel):
             self.column_selection(None)
             
         # Send confirmation
-        messagebox.showinfo(title="Impute with Forward/Back Fill", 
-        message=f'Column(s) {col_str} imputed with forward/backward propagation.')
+        messagebox.showinfo(
+            title="Impute with Forward/Back Fill", 
+            message=f'Column(s) {col_str} imputed with forward/backward propagation.'
+            )
 
 class ImputeNullsWithMean(tk.Toplevel):
 
@@ -1876,8 +2086,10 @@ class ImputeNullsWithMean(tk.Toplevel):
                 self.populate_dict()
                 self.column_selection(None)
         # Send confirmation
-        messagebox.showinfo(title="Impute with MMM", 
-        message=f'Column(s) {col_str} imputed with a {impute_method} of {impute_value}.')
+        messagebox.showinfo(
+            title="Impute with MMM", 
+            message=f'Column(s) {col_str} imputed with a {impute_method} of {impute_value}.'
+            )
 
 class RemoveRowsWithXNullsWindow(tk.Toplevel):
 
@@ -1983,8 +2195,9 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
 
         # Ask the user if they want to delete specfied number of rows
         question = messagebox.askyesno(
-            "Drop Rows Exceeding Null Threshold", 
-            f"Drop {num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data)?")
+            title="Drop Rows Exceeding Null Threshold", 
+            message=f"Drop {num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data)?"
+            )
 
         # If the user answers Yes, then proceed to delete rows
         if question == 1:
@@ -1995,7 +2208,8 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
             # Notify user that rows have been deleted
             messagebox.showinfo(
                 title="Drop Rows Exceeding Null Threshold", 
-                message=f'{num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data), deleted.')
+                message=f'{num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data), deleted.'
+                )
 
 class FillAllNullsWindow(tk.Toplevel):
 
@@ -2071,8 +2285,8 @@ class FillAllNullsWindow(tk.Toplevel):
         num_of_nulls = int(df.isnull().sum().sum())
         # Ask user if they want to impute nulls with specified value
         question = messagebox.askyesno(
-            "Impute Nulls", 
-            f"Impute {num_of_nulls} nulls with {impute_value}?")
+            title="Impute Nulls", 
+            message=f"Impute {num_of_nulls} nulls with {impute_value}?")
         # If the user answers Yes, proceed with replacement of nulls
         if question == 1:
             # Impute nulls
@@ -2082,7 +2296,7 @@ class FillAllNullsWindow(tk.Toplevel):
                 title="Impute Nulls", 
                 message=f'{num_of_nulls} nulls imputed.')
 
-root = PandaDataCleaner()
+root = PandasDataCleaner()
 # Set global font.  Doesn't apply to fields.  
 font.nametofont('TkDefaultFont').configure(size=15)
 root.mainloop()
