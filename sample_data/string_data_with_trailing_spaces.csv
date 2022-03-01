@@ -1,0 +1,9 @@
+Status,Gender,Children,Age,Income
+  Married,Male,Yes,34,34000
+Married  ,  Male,  Yes,56,23000
+Single,  Male  ,No,36,65000
+Single,Female,No,23,76000
+Divorced,Female,Yes,26,123000
+Divorced  ,Female ,No,54,56000
+Separated ,Female,Yes,33,76000
+Separated ,Male, Yes ,24,83000

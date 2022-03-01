@@ -1,0 +1,9 @@
+Driver_Age,Driver_Gender,Speed,At_Fault,Intoxicated,Time_of_Day,Traffic_Control,Surface_Control
+27,Male,32,1,Yes,Morning,Stop Sign,Dry
+34,Female,50,0,Yes,Afternoon, Stop Sign,Wet
+32,Male,54,1,Yes,Morning,Traffic Light,Snow
+43,Female,50,0,No,Evening,No Control,Ice
+43,Female,50,1,Yes,Night,Stop Sign,Sleet
+53,Male,40,0,No,Afternoon,Traffic Light,Dry
+25,Female,67,1,Yes,Evening,Stop Sign,Sleet
+26,Female,23,1,No,Morning,No Control,Snow
