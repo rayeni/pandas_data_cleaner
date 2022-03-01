@@ -5,6 +5,8 @@ from sklearn.impute import KNNImputer
 from datetime import datetime
 import io
 
+import csv
+
 import re
 
 import tkinter as tk
@@ -46,6 +48,9 @@ class PandasDataCleaner(tk.Tk):
         # Disable resizing window
         self.resizable(False, False)
         self.configure(bg='#1ac6ff')
+
+        # Create variable to hold file path, to be accessed later by other functions
+        self.csv_file = ''
 
         # Create frame for logo
         logo_frame = tk.Frame(self, bg='#1ac6ff', width=800, height=70)
@@ -93,9 +98,6 @@ class PandasDataCleaner(tk.Tk):
         #    text='Import from CSV', 
         #    width=17, 
         #    command=self.import_from_csv)
-
-        # Add import button to frame
-        # import_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
         # Create "Import Data" menu button
         mb_import_data = ttk.Menubutton(top_frame, text='Import Data', width=15)
@@ -300,6 +302,12 @@ class PandasDataCleaner(tk.Tk):
             font=("Segoe UI", menu_option_font), 
             command=self.convert_to_lowercase)
 
+        # Create Replace NA with N.A. menu option
+        menu_clean_string.add_command(
+            label='Replace NA (False NaN) with N.A.', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.replace_na_with_ndotadot)
+
         # Associate menu with menu button
         mb_clean_string["menu"] = menu_clean_string
 
@@ -339,13 +347,13 @@ class PandasDataCleaner(tk.Tk):
         global df
 
         # Get path/location of csv file to import
-        csv_file = filedialog.askopenfilename(
+        self.csv_file = filedialog.askopenfilename(
             initialdir="./", 
             title="Open CSV File", 
             filetypes=(("CSV Files", "*.csv"),("All Files","*.*")))
         
         # Read csv into global df variable
-        df = pd.read_csv(csv_file)
+        df = pd.read_csv(self.csv_file)
 
         # Give user confirmation that csv file was imported.
         if len(df) > 0:
@@ -358,12 +366,7 @@ class PandasDataCleaner(tk.Tk):
                 title='Error', 
                 message='Error loading CSV file.'
                 )
-        
-        print(df.head())
-        print()
-        print(df.dtypes)
-        print('REMOVE THESE PRINT STATEMENTS BEFORE PACKAGING APP FOR USE!!!')
-    
+          
     def import_tsv(self):
         '''Import tsv file into dataframe'''
 
@@ -828,6 +831,60 @@ class PandasDataCleaner(tk.Tk):
             messagebox.showinfo(
                 title="Convert Strings to Lowercase", 
                 message=f'Column values converted to lowercase.'
+                )
+
+    def replace_na_with_ndotadot(self):
+        '''Find and replace NA NaN with N.A. This eliminates false NaNs.'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Set counter variable to count the number of replacements
+        counter = 0
+
+        # Create dictionary.  Dictionary will be used to recreate df to capture instances of NA
+        a_dict = {}
+
+        # Create variable to get number of rows in df. Used in range of for loop.
+        rows = df.shape[0] + 1
+
+        # Create variable to get number of columns in df. Used in range of for loop.
+        columns = df.shape[1]
+
+        # Read CSV using csv.reader, not pandas, to capture instances of NA
+        with open(self.csv_file, "r") as file:
+            csv_reader = csv.reader(file, delimiter=',')
+            lists = [lines for lines in csv_reader]
+
+        # Grab the first list from lists to get the column headers
+        list_0 = lists[0]
+
+        # Add keys and empty values/list to dictionary
+        for i in range(0,len(list_0)):
+            a_dict[list_0[i]] = []
+        
+        # Add values to dictionary:
+        for c in range(0,columns):
+            for r in range(1, rows):
+                a_dict[list_0[c]].append(lists[r][c])
+
+        # Replace NA NaN with N.A. to eliminate NaNs
+        for key in a_dict:
+            for i in range(0, rows-1):
+                if a_dict[key][i] in ['N/A','NA','n/a']:
+                    df[key][i] = 'N.A.'
+                    counter = counter + 1
+
+        # Notify user
+        if counter == 0: 
+            messagebox.showinfo(
+                title="Replace NA (False NaN) with N.A.", 
+                message='No NA NaNs found.'
+                )
+        else:
+            messagebox.showinfo(
+                title="Replace NA NaN with N.A.", 
+                message=f'{counter} NAs were replaced with N.A.'
                 )
 
     def open_remove_rows_with_x_nulls_window(self):
@@ -2263,7 +2320,7 @@ class FillAllNullsWindow(tk.Toplevel):
         # Create button widget to fill nulls
         fillna_all_btn = ttk.Button(
             fillna_all_frame,
-            text='FillNA',
+            text='Fill Nulls',
             command=lambda: self.fill_all_nulls(self.fillna_all_value.get())
             )
         # Place button in frame
