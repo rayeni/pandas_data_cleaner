@@ -20,7 +20,6 @@ jobs:
       #- run: pip install pyinstaller
       #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
       #- run: mv dist dist-windows
-      - run: zip
       - run: tar
 
       #- store_artifacts:
