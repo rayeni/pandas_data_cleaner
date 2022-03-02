@@ -14,16 +14,16 @@ jobs:
     steps:
       - checkout
 
-      #- run: pip install Pillow
-      #- run: conda install pandas
-      #- run: pip install -U scikit-learn
-      #- run: pip install pyinstaller
-      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
-      #- run: mv dist dist-windows
-      - run: tar
+      - run: pip install Pillow
+      - run: conda install pandas
+      - run: pip install -U scikit-learn
+      - run: pip install pyinstaller
+      - run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+      - run: mv dist dist-windows
+      - run: tar -cfvz dist-windows.tar.gz dist-windows
 
-      #- store_artifacts:
-      #    path: ~/pandas_data_cleaner/dist-windows
+      - store_artifacts:
+          path: ~/pandas_data_cleaner/dist-windows.tar.gz
 
 workflows:
   build-with-windows:
