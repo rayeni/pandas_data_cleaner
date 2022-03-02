@@ -13,11 +13,18 @@ jobs:
 
     steps:
       - checkout
+
       - run: pip install Pillow
       - run: conda install pandas
       - run: pip install -U scikit-learn
       - run: pip install pyinstaller
       - run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+
+      - store_artifacts:
+          path: ~/pandas_data_cleaner/build
+
+
+
 
 workflows:
   build-with-windows:
