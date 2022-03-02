@@ -1,10 +1,13 @@
 version: 2.1
 
+orbs:
+  win: circleci/windows@2.2.0
+
 jobs:
   windows-build:
     executor:
-      - name: win/default
-      - shell: command.exe
+      name: win/default
+      shell: cmd.exe
     steps:
       - checkout
       - run: pyinstaller pandas_data_cleaner.py --add-data "images;images" --add-data "sample_data;sample_data"
