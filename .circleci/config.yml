@@ -10,8 +10,9 @@ jobs:
       shell: cmd.exe
     steps:
       - checkout
+      - run: pip install pyinstaller
       - run: pyinstaller pandas_data_cleaner.py --add-data "images;images" --add-data "sample_data;sample_data"
-
+    
 workflows:
   build-with-windows:
     jobs:
