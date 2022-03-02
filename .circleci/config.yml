@@ -8,6 +8,9 @@ jobs:
     executor:
       name: win/default
       shell: cmd.exe
+
+    working_directory: ~/pandas_data_cleaner
+    
     steps:
       - checkout:
           path: ~/pandas_data_cleaner
