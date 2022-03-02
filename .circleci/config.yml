@@ -13,9 +13,10 @@ jobs:
 
     steps:
       - checkout
-      - run: pip install Pillow
-      - run: pip install pyinstaller
-      - run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+      #- run: pip install Pillow
+      #- run: pip install pyinstaller
+      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+      - run: conda list
 
 workflows:
   build-with-windows:
