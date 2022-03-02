@@ -19,7 +19,7 @@ jobs:
       - run: pip install -U scikit-learn
       - run: pip install pyinstaller
       - run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
-      - run: ls -l dist
+      - run: find ./dist | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
 
       #- store_artifacts:
       #    path: ~/pandas_data_cleaner/build
