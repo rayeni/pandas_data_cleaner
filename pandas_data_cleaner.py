@@ -44,7 +44,7 @@ class PandasDataCleaner(tk.Tk):
         except:
             self.iconbitmap(my_dir / './images/panda.ico')
         # Set window dimensions
-        self.geometry("800x600")
+        self.geometry("800x350")
         # Disable resizing window
         self.resizable(False, False)
         self.configure(bg='#1ac6ff')
