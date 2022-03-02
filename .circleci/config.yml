@@ -3,16 +3,16 @@ version: 2.1
 orbs:
   win: circleci/windows@2.2.0
 
-workflows:
-  build-deploy:
-    jobs:
-      - build-windows
-      
 jobs:
-  build-windows:
+  build-with-windows:
     executor:
       name: win/default
       shell: cmd.exe
     steps:
       - checkout
       - run: pyinstaller pandas_data_cleaner.py --add-data "images;images" --add-data "sample_data;sample_data"
+
+workflows:
+  build-with-windows:
+    jobs:
+      - build-with-windows
