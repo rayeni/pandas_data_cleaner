@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  win: circleci/windows@2.2.0
+  win: circleci/windows@2.2.0 
 
 jobs:
   build-with-windows:
@@ -10,13 +10,13 @@ jobs:
       shell: cmd.exe
 
     working_directory: ~/pandas_data_cleaner
-    
+
     steps:
-      - checkout:
-          path: ~/pandas_data_cleaner
-      - run: pip install pyinstaller
-      - run: pyinstaller pandas_data_cleaner.py --add-data "images;images" --add-data "sample_data;sample_data"
-    
+      - checkout
+      run: dir
+      #- run: pip install pyinstaller
+      #- run: pyinstaller pandas_data_cleaner.py --add-data "images;images" --add-data "sample_data;sample_data"
+
 workflows:
   build-with-windows:
     jobs:
