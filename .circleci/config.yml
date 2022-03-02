@@ -7,13 +7,13 @@ jobs:
   build-with-windows:
     executor:
       name: win/default
-      shell: cmd.exe
+      shell: bash.exe
 
     working_directory: ~/pandas_data_cleaner
 
     steps:
       - checkout
-      - run: dir
+      - run: ls
       #- run: pip install pyinstaller
       #- run: pyinstaller pandas_data_cleaner.py --add-data "images;images" --add-data "sample_data;sample_data"
 
