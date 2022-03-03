@@ -20,7 +20,7 @@ jobs:
       - run: conda install scikit-learn=0.24.1
       - run: pip install pyinstaller
       - run: pip list
-      - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
+      - run: pyinstaller pandas_data_cleaner.py --debug=imports --hidden-imports=jinja2 --add-data "./images;images"
       - run: tar -cvzf dist.tar.gz dist
 
       - store_artifacts:
