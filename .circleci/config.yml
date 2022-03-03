@@ -21,10 +21,11 @@ jobs:
       - run: pip install pyinstaller
       - run: pip list
       - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
-      - run: tar -cvzf dist.tar.gz dist
+      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
+      #- run: tar -cvzf dist.tar.gz dist
 
-      - store_artifacts:
-          path: ~/pandas_data_cleaner/dist.tar.gz
+      #- store_artifacts:
+      #    path: ~/pandas_data_cleaner/dist.tar.gz
 
 workflows:
   build-with-windows:
