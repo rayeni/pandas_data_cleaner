@@ -18,7 +18,7 @@ jobs:
       - run: pip install --upgrade 'setuptools<45.0.0'
       - run: conda install pandas
       - run: pip install -U scikit-learn
-      - run: find / -name sklearn.utils._typedefs
+      #- run: find / -name sklearn.utils._typedefs
       - run: find / -name "*typedefs*"
       #- run: pip install pyinstaller
       #- run: pip list
