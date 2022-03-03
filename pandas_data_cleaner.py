@@ -1,10 +1,7 @@
 # Import libaries
 import pandas as pd
 from sklearn.impute import KNNImputer
-#import sklearn.neighbors._typedefs
-from sklearn.neighbors import _typedefs
 import jinja2
-
 
 from datetime import datetime
 import io
