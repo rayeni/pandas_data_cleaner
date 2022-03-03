@@ -1,6 +1,7 @@
 # Import libaries
 import pandas as pd
-from sklearn.impute import KNNImputer
+#from sklearn.impute import KNNImputer
+import sklearn.impute
 
 from datetime import datetime
 import io
@@ -556,7 +557,7 @@ class PandasDataCleaner(tk.Tk):
                 # If user answers Yes, then impute nulls
                 if question == 1:
                     # Create and initialize KNN imputation model
-                    impKNN = KNNImputer(n_neighbors=5)
+                    impKNN = sklearn.impute.KNNImputer(n_neighbors=5)
                     # Impute Nulls
                     df = pd.DataFrame(impKNN.fit_transform(df),columns=df.columns)
                     # Send confirmation.
