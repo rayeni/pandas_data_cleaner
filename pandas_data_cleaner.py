@@ -1,6 +1,5 @@
 # Import libaries
 import pandas as pd
-#from sklearn.impute import KNNImputer
 import sklearn.impute
 
 from datetime import datetime
@@ -34,7 +33,12 @@ my_dir = Path(__file__).parent
 
 # Main application window
 class PandasDataCleaner(tk.Tk):
+    '''
+    This class is for the root window of the TKinter application.
+    It inherits from Tkinter's tk.Tk class.
+    '''
     def __init__(self):
+        '''The constuctor for the PandasDataCleaner class.'''
         super().__init__()
 
         # Change window title
@@ -89,7 +93,7 @@ class PandasDataCleaner(tk.Tk):
         '''
         The buttons to import csv, export dataframe, 
         and to close the app are created here and added
-        to the frame, top_frame
+        to the frame, top_frame.
         '''
         # ---FIRST MENU BUTTON (Import from CSV), Top Frame, First Row, First Column--- #
 
@@ -147,7 +151,7 @@ class PandasDataCleaner(tk.Tk):
         '''
         The remaining widgets are menu buttons that present the user with
         data cleaning options.  The menu buttons are added to the frame,
-        func_frame_1
+        func_frame_1.
         '''
         # ---FIRST MENU BUTTON (MISSING DATA), First Row, First Column--- #
 
@@ -228,7 +232,7 @@ class PandasDataCleaner(tk.Tk):
         # ---THIRD MENU BUTTON (CLEAN NUMERICS) First Row, Third Column--- #
 
         # Create Clean Numerics menu button
-        mb_clean_numeric = ttk.Menubutton(func_frame_1, text='Clean Num Data', width=15)
+        mb_clean_numeric = ttk.Menubutton(func_frame_1, text='Clean Numerics', width=15)
 
         # Create Clean Numerics menu
         menu_clean_numeric = tk.Menu(mb_clean_numeric, tearoff=False)
@@ -241,9 +245,15 @@ class PandasDataCleaner(tk.Tk):
 
         # Create Remove % Signs menu option
         menu_clean_numeric.add_command(
-            label='Remove % Signs',
+            label='Remove Percent Signs',
             font=('Segoe UI', menu_option_font),
-            command=self.open_remove_pcts_window) 
+            command=self.open_remove_pcts_window)
+
+        # Create Remove Units Measurement menu option
+        menu_clean_numeric.add_command(
+            label='Remove Units Measurement',
+            font=('Segoe UI', menu_option_font),
+            command=self.open_remove_units_of_measure_window)
 
         # Associate menu with menu button
         mb_clean_numeric["menu"] = menu_clean_numeric
@@ -342,7 +352,7 @@ class PandasDataCleaner(tk.Tk):
         mb_datetime.grid(row=1, column=2, padx=5, pady=5, sticky='E')
 
     def import_csv(self):
-        '''Import csv file into dataframe'''
+        '''Import csv file into dataframe.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -369,7 +379,7 @@ class PandasDataCleaner(tk.Tk):
                 )
         
     def import_tsv(self):
-        '''Import tsv file into dataframe'''
+        '''Import tsv file into dataframe.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -396,7 +406,7 @@ class PandasDataCleaner(tk.Tk):
                 )
     
     def import_excel(self):
-        '''Import Excel file into dataframe'''
+        '''Import Excel file into dataframe.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -423,7 +433,7 @@ class PandasDataCleaner(tk.Tk):
                 )    
 
     def export_to_csv(self):
-        '''Export dataframe to csv file'''
+        '''Export dataframe to csv file.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -451,7 +461,7 @@ class PandasDataCleaner(tk.Tk):
                 )
 
     def close_app(self):
-        '''Close application'''
+        '''Close application.'''
 
         # Ask user if they are sure about closing application
         question = messagebox.askyesno(
@@ -463,7 +473,7 @@ class PandasDataCleaner(tk.Tk):
             self.destroy()
 
     def change_col_names_to_lowercase(self):
-        '''Change column names to lowercase'''
+        '''Change column names to lowercase.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -570,6 +580,12 @@ class PandasDataCleaner(tk.Tk):
         '''
         Check if text value is of format YYYY-MM-DD
         https://stackoverflow.com/a/37045601
+
+        :param date_text: text data from df.info() function
+        :type date_text: string
+
+        :raises ValueError: if date_text is not in correct date format
+        :return True/False: True, if text is in date format, otherwise False
         '''
         try:
             if date_text != datetime.strptime(date_text, "%Y-%m-%d").strftime('%Y-%m-%d'):
@@ -580,9 +596,11 @@ class PandasDataCleaner(tk.Tk):
 
     def get_dataframe_info(self):
         '''
-        Get dataframe information
-        Store information in buffer
-        Return contents of buffer
+        Get dataframe information.
+        Store information in buffer.
+        Return contents of buffer.
+
+        :return buffer.getvalue(): Contents in buffer
         '''
         # Create StringIO object
         buffer = io.StringIO()
@@ -597,6 +615,17 @@ class PandasDataCleaner(tk.Tk):
         '''
         Get current index information from dataframe info.
         https://www.kite.com/python/answers/how-to-get-the-substring-between-two-markers-in-python
+
+        :param df_inf: Text output from the DataFrame.info() function
+        :type df_inf: string
+
+        :param start_marker: The beginning point of the df_inf to start grabbing data
+        type start_marker: string
+
+        :param end_marker: The ending point of the df_inf to stop grabbing data
+        type end_marker: string
+
+        :return index_substring.split(): A list of words from a substring of df_inf          
         '''
 
         # Get the starting point for substring (The line that starts with Index info)
@@ -703,7 +732,7 @@ class PandasDataCleaner(tk.Tk):
                     )
 
     def remove_trailing_leading_spaces(self):
-        '''Find and remove all trailing and leading spaces from strings'''
+        '''Find and remove all trailing and leading spaces from strings.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -749,7 +778,16 @@ class PandasDataCleaner(tk.Tk):
                     )
 
     def rm_spec_chars_from_cols(self, x):
-        '''Remove special characters from columns'''
+        '''
+        Receive call from .apply() to 
+        remove special characters from 
+        DataFrame column values.
+        
+        :param x: Column value to be modified
+        :type x: string
+
+        :return x: Modified column value
+        '''
 
         # try except is use here to handle any 
         # NaNs that may exist and break application
@@ -792,7 +830,16 @@ class PandasDataCleaner(tk.Tk):
                 )
 
     def convert_cols_to_lowercase(self, x):
-        '''Convert column values to lower case'''
+        '''
+        Receive call from .apply() to 
+        convert DataFrame columns values
+        to lowercase.
+        
+        :param x: Column value to be modified
+        :type x: string
+
+        :return x: Modified column value
+        '''
 
         # try except is use here to handle any 
         # NaNs that may exist and break application
@@ -835,7 +882,10 @@ class PandasDataCleaner(tk.Tk):
                 )
 
     def replace_na_with_ndotadot(self):
-        '''Find and replace NA NaN with N.A. This eliminates false NaNs.'''
+        '''
+        Find and replace NA NaN with N.A. 
+        This eliminates false NaNs.
+        '''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -889,7 +939,7 @@ class PandasDataCleaner(tk.Tk):
                 )
 
     def open_remove_rows_with_x_nulls_window(self):
-        '''Open Fill All Nulls window'''
+        '''Open Fill All Nulls window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -906,7 +956,7 @@ class PandasDataCleaner(tk.Tk):
             window.grab_set()
 
     def open_fill_all_nulls_window(self):
-        '''Open Fill All Nulls window'''
+        '''Open Fill All Nulls window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -923,7 +973,7 @@ class PandasDataCleaner(tk.Tk):
             window.grab_set()
 
     def open_fill_forward_window(self):
-        '''Open Fill Forward window'''
+        '''Open Fill Forward window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -940,7 +990,7 @@ class PandasDataCleaner(tk.Tk):
             window.grab_set()
 
     def open_impute_nulls_with_mean_window(self):
-        '''Open Impute Nulls with Mean window'''
+        '''Open Impute Nulls with Mean window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -957,7 +1007,7 @@ class PandasDataCleaner(tk.Tk):
             window.grab_set()
 
     def open_drop_cols_window(self):
-        '''Open Drop Columns window'''
+        '''Open Drop Columns window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -968,13 +1018,13 @@ class PandasDataCleaner(tk.Tk):
                 title="No Data Present", 
                 message='Please load CSV file.'
                 )
-        # Open window
+        # Open DropColumns window
         else:
             window = DropColumns(self)
             window.grab_set()
 
     def open_binary_class_window(self):
-        '''Open Binary Classification window'''
+        '''Open Binary Classification window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -991,7 +1041,7 @@ class PandasDataCleaner(tk.Tk):
             window.grab_set()
 
     def open_dummify_columns_window(self):
-        '''Open Dummify Columns window'''
+        '''Open Dummify Columns window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -1008,7 +1058,7 @@ class PandasDataCleaner(tk.Tk):
             window.grab_set()
 
     def open_remove_pcts_window(self):
-        '''Open Remove Percents window'''
+        '''Open Remove Percents window.'''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
@@ -1042,7 +1092,299 @@ class PandasDataCleaner(tk.Tk):
             window = RemovePercents(self)
             window.grab_set()
 
+    def open_remove_units_of_measure_window(self):
+        '''Open Remove Measurement window.'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+        
+        # Check for any object columns:
+        object_cols = df.select_dtypes(include='object')
+
+        # Check if columns have values with leading numbers or currency symbols
+        leads_with_num = object_cols.apply(lambda col: col.str.startswith(
+            ('$', '€', '£', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')), axis=0)
+
+        # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
+        if len(df) == 0:
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
+        # If there are no object columns, then exit
+        elif object_cols.shape[1] == 0:
+            messagebox.showinfo(
+                title="No Object Columns", 
+                message='No object columns exist.'
+                )
+        # If there are no column values leading with numbers or currency symbols, then exit
+        elif any(leads_with_num) == False:
+            messagebox.showinfo(
+                title="No Data Found", 
+                message='No data found that meets criteria.'
+                )
+        # Open window
+        else:
+            window = RemoveUnitsOfMeasurment(self)
+            window.grab_set()
+
+class RemoveUnitsOfMeasurment(tk.Toplevel):
+    '''
+    This class is for the secondary window,
+    RemoveUnitsOfMeasurment, of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
+
+    # Set df variable as global variable to enable all functions to modify it
+    global df
+
+    def __init__(self, root):
+        super().__init__(root)
+
+        # Set window properties
+        self.geometry('530x590')
+        try:
+            self.iconbitmap('./images/panda.ico')
+        except:
+            self.iconbitmap(my_dir / './images/panda.ico')
+        self.resizable(0,0)
+        self.title('Remove Units of Measurement')
+        self.configure(bg='#1ac6ff')
+
+        # Create left frame for listbox
+        left_frame = tk.Frame(self, bg='#1ac6ff', width=300, height=590)
+        left_frame.grid(row=0, column=0, padx=5, pady=5)
+        left_frame.grid_propagate(0)
+        left_frame.grid_columnconfigure(0, weight=1)
+
+        # Create right frame for buttons
+        right_frame = tk.Frame(self, bg='#1ac6ff', width=230, height=590)
+        right_frame.grid(row=0, column=1, padx=5, pady=5)
+        right_frame.grid_propagate(0)
+
+        # The following creates a listbox and puts it in left frame
+        # 1. Get the list of columns with which to populate listbox
+        self.cols_list = self.get_col_list()
+
+        # 2. Convert list to tuple, because tk.StringVar takes a tuple argument.
+        cols_tuple = tuple(self.cols_list)
+        
+        # 3. Create tk.StringVar object for listbox and assign it to the col_list_var variable
+        col_list_var = tk.StringVar(value=cols_tuple)
+
+        # 4. Create listbox
+        self.col_listbox = tk.Listbox(
+            left_frame, 
+            listvariable=col_list_var, 
+            selectmode='browse',
+            exportselection=False)
+        
+        # 5. Display listbox in frame
+        self.col_listbox.grid(row=1, column=0, padx=0, pady=5, sticky='NSEW')
+
+        # 6. Bind listbox to column_selection function.  When a column is selected, in the listbox,
+        #    it's unique values are displayed in the text widget.
+        self.col_listbox.bind('<<ListboxSelect>>', self.column_selection)
+
+        # Create scrollbar for listbox
+        lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
+        lb_scroll.grid(row=1, column=1, pady=5, sticky='NSEW')
+        self.col_listbox['yscrollcommand'] = lb_scroll.set
+
+        # Create a label to place above the listbox 
+        listbox_label = ttk.Label(
+            left_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Columns'
+            )
+        # Place label in frame
+        listbox_label.grid(row=0, column=0, padx=0, pady=5, sticky='W')
+
+        # Create dictionary for columns and their unique values.
+        # This dictionary is needed to dynamically populate the label as 
+        # the user selects a column from the listbox
+        self.a_dict = {}
+
+        # Populate the dictionary with columns and values
+        self.populate_dict()
+
+        # Create a label to place above the text widget 
+        # that indicates that the widget displays values 
+        # of the selected column
+        column_values_label = ttk.Label(
+            left_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Column Values'
+            )
+        # Place label in frame
+        column_values_label.grid(row=2, column=0, padx=0, pady=5, sticky='W')
+
+        # Create a text widget to present the values when a column is selected.
+        # Displaying values gives the user visibility of the data to be modified.
+        self.column_values_text = tk.Text(
+            left_frame, 
+            font=("Segoe UI", 14), 
+            height=6,
+            wrap=WORD)
+        #Place text widget in frame
+        self.column_values_text.grid(row=3, column=0, padx=0, pady=5, sticky='NSEW')
+        
+        # Create scrollbar for text widget
+        text_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.column_values_text.yview)
+        text_scroll.grid(row=3, column=1, pady=5, sticky='NSEW')
+        self.column_values_text['yscrollcommand'] = text_scroll.set
+
+        # Create a label to place above the action buttons 
+        action_label = ttk.Label(
+            right_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Action'
+            )
+        # Place label in frame
+        action_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+
+        # Create buttons and put in right frame
+        remove_units_btn = ttk.Button(
+            right_frame,
+            text='Remove Units',
+            width=16, command=lambda: self.remove_units()
+            )
+        # Place button in frame
+        remove_units_btn.grid(row=1, column=0, padx=5, pady=5, sticky='E')
+
+        close_btn = ttk.Button(
+            right_frame, 
+            text='Close', 
+            width=16, 
+            command=self.destroy
+            )
+        # Place button in frame
+        close_btn.grid(row=4, column=0, padx=5, pady=5, sticky='E')
+
+    def get_col_list(self):
+        '''
+        Get and return list of columns 
+        with which to populate listbox.
+        '''
+
+        # Get all columns that are of type object
+        df1 = df.select_dtypes(include='object')
+        
+        # Make copy of dataframe.
+        df2 = df1.copy(deep=True)
+        
+        # Get columns that have values starting with leading numeric strings or currency signs
+        mask = df2.apply(lambda col: col.str.startswith(
+            ('$', '€', '£', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')), axis=0)
+
+        # Drop any columns that don't meet above criteria or that meets 
+        # criteria but doesn't meet threshold of 50%
+        droplist = [col for col in mask.columns if any(mask[col]) == False or mask[col].value_counts(normalize=True).to_dict()[True] < 0.5]
+        mask.drop(droplist, axis=1, inplace=True)
+
+        return mask.columns.to_list()
+
+    def column_selection(self, event):
+        '''
+        Determine and return the 
+        element selected in listbox.
+        '''
+        
+        # Get the index of the listbox item
+        selected_index = self.col_listbox.curselection()
+        
+        # Use index to get listbox item (i.e., column name)
+        column_name = (self.col_listbox.get(selected_index))
+        
+        # Get columns' values
+        list_of_values = self.a_dict[column_name]
+        
+        # Enable text widget
+        self.column_values_text.config(state="normal")
+        
+        # Delete any text that may be in text widget
+        self.column_values_text.delete("1.0","end")
+        
+        # Enter column name into to text widget
+        self.column_values_text.insert(END, column_name + ' Values:  ')
+        
+        # Enter column's values into text widget
+        for value in list_of_values:
+            self.column_values_text.insert(END, str(value) + ', ')
+        
+        # Delete ending space from text widget
+        self.column_values_text.delete("end-2c")
+        
+        # Delete ending comma from text widget
+        self.column_values_text.delete("end-2c")
+        
+        # Disable text widget
+        self.column_values_text.config(state="disabled")
+
+    def populate_dict(self):
+        '''
+        Clear and populate dictionary 
+        with columns (keys) and list of values (values).
+        '''
+        
+        # Clear dictionary
+        self.a_dict = {}
+        
+        # populate dictionary with initial or updated keys (i.e., column names) and 
+        # values (i.e., list of unique column values)
+        for col in self.cols_list:
+            self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
+
+    def remove_units_of_measurement(self, x):
+        '''
+        Receive call from .apply() to remove 
+        units of measurment from column string values
+        and convert them to numeric values.
+        
+        :param x: Column string value with unit of measurement
+        :type x: string
+
+        :return x: Modified column value converted to float
+        '''
+        # try-except block is use here to handle any NaNs that may exist
+        try:
+            x = re.sub(r'[^0-9\.]','',x)
+        except TypeError:
+            pass
+    
+        return float(x)
+
+    def remove_units(self):
+        '''Remove units of measure from column values.'''
+
+        # Get the selected listbox items and put in a list
+        col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
+        col_str = ', '.join(col_list)
+        # Loop through col_list to remove units of measurement
+        for col in col_list:
+            df[col] = df[col].apply(self.remove_units_of_measurement)
+        
+        # Update dictionary of column's values
+        self.populate_dict()
+        # Update text widget to show the updated changes
+        self.column_selection(None)
+
+        # Send confirmation
+        messagebox.showinfo(
+            title="Remove Units of Measurment", 
+            message=f'Units removed from Column(s) {col_str} values.'
+            )
+
 class RemovePercents(tk.Toplevel):
+    '''
+    This class is for the secondary window
+    RemovePercents of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
+
     # Set df variable as global variable to enable all functions to modify it
     global df
 
@@ -1109,8 +1451,8 @@ class RemovePercents(tk.Toplevel):
         # Place label in frame
         listbox_label.grid(row=0, column=0, padx=0, pady=5, sticky='W')
 
-        # Create dictionary for columns and their unique values (e.g., 'yes' and 'no')
-        # This dictionary is needed to dynamically populate the labels as 
+        # Create dictionary for columns and their unique values.
+        # This dictionary is needed to dynamically populate the label as 
         # the user selects a column from the listbox
         self.a_dict = {}
 
@@ -1129,7 +1471,7 @@ class RemovePercents(tk.Toplevel):
         column_values_label.grid(row=2, column=0, padx=0, pady=5, sticky='W')
 
         # Create a text widget to present the values when a column is selected.
-        # Displaying values gives the user more insight into which impute method to use.
+        # Displaying values gives the user visibility of the data to be modified.
         self.column_values_text = tk.Text(
             left_frame, 
             font=("Segoe UI", 14), 
@@ -1172,7 +1514,10 @@ class RemovePercents(tk.Toplevel):
         close_btn.grid(row=4, column=0, padx=5, pady=5, sticky='E')
 
     def get_col_list(self):
-        '''Get and return list of columns with which to populate listbox'''
+        '''
+        Get and return list of columns 
+        with which to populate listbox.
+        '''
 
         # Get all columns that are of type object
         df1 = df.select_dtypes(include='object')
@@ -1217,7 +1562,10 @@ class RemovePercents(tk.Toplevel):
         return pct_cols
     
     def column_selection(self, event):
-        '''Determine and return the element selected in listbox'''
+        '''
+        Determine and return the 
+        element selected in listbox.
+        '''
         
         # Get the index of the listbox item
         selected_index = self.col_listbox.curselection()
@@ -1251,9 +1599,12 @@ class RemovePercents(tk.Toplevel):
         self.column_values_text.config(state="disabled")
 
     def populate_dict(self):
-        '''Populate dictionary with columns (keys) and list of values (values)'''
+        '''
+        Clear and populate dictionary 
+        with columns (keys) and list of values (values).
+        '''
         
-        # clear dictionary
+        # Clear dictionary
         self.a_dict = {}
         
         # populate dictionary with initial or updated keys (i.e., column names) and 
@@ -1262,10 +1613,28 @@ class RemovePercents(tk.Toplevel):
             self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
 
     def convert_pct_to_num(self, x):
-        x = x.replace('%','')
+        '''
+        Receive call from .apply() to remove 
+        % sign from column string values
+        and convert them to numeric values.
+        
+        :param x: Column string value with % sign
+        :type x: string
+
+        :return x: Modified column value converted to int
+        '''
+
+        # try except is use here to handle and NaNs that may exist and break task
+        try:
+            x = x.replace('%','')
+        except TypeError:
+            pass
+
         return int(x)/100
 
     def remove_pct_sign(self):
+        '''Remove percent sign from column value.'''
+
         # Get the selected listbox items and put in a list
         col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
         col_str = ', '.join(col_list)
@@ -1285,6 +1654,11 @@ class RemovePercents(tk.Toplevel):
             )
 
 class DummifyColumns(tk.Toplevel):
+    '''
+    This class is for the secondary window
+    DummifyColumns of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
 
     # Set df variable as global variable to enable all functions to modify it
     global df
@@ -1386,7 +1760,7 @@ class DummifyColumns(tk.Toplevel):
         listbox_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
 
     def dummify_columns(self):
-        '''Dummify specified columns'''
+        '''Dummify specified columns.'''
 
         # Set df as global variable.  Without it, the application breaks.
         global df
@@ -1418,7 +1792,11 @@ class DummifyColumns(tk.Toplevel):
             )
 
 class BinaryClassification(tk.Toplevel):
-
+    '''
+    This class is for the secondary window,
+    BinaryClassification, of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
     # Set df variable as global variable to enable all functions to modify it
     global df
 
@@ -1631,11 +2009,25 @@ class BinaryClassification(tk.Toplevel):
         close_btn.grid(row=3, column=0, padx=5, pady=5, sticky='W')        
 
     def populate_dict(self):
+        '''
+        Clear and populate dictionary 
+        with columns (keys) and list of values (values).
+        '''
+
+        # Clear existing dictionary
         self.a_dict = {}
+        # Populate dictionary
         for col in self.bin_cols:
             self.a_dict[col] = df[col].unique().tolist()
 
     def column_selection(self, event):
+        '''
+        Receive event from listbox monitor.
+        Update labels in response to listbox selection
+
+        :param event: Mouse click selection of listbox item
+        :type event: object
+        '''
         # Get the index of the listbox item (i.e. column name)
         selected_index = self.col_listbox.curselection()
         # Use index to get listbox item (i.e., column name)
@@ -1645,18 +2037,56 @@ class BinaryClassification(tk.Toplevel):
         self.col_val_2.set(self.a_dict[column_name][1])
                 
     def category_selection_0(self, event):
+        '''
+        Receive event from first combobox monitor.
+        Update second combobox value in response 
+        to first combobox selection.
+
+        :param event: Mouse click selection of first combobox item
+        :type event: object
+        '''
+
         if self.selected_category_0.get() == 0:
             self.selected_category_1.set(1)
         elif self.selected_category_0.get() == 1:
             self.selected_category_1.set(0)
 
     def category_selection_1(self, event):
+        '''
+        Receive event from second combobox monitor.
+        Update first combobox value in response 
+        to second combobox selection.
+
+        :param event: Mouse click selection of second combobox item
+        :type event: object
+        '''
+
         if self.selected_category_1.get() == 0:
             self.selected_category_0.set(1)
         elif self.selected_category_1.get() == 1:
             self.selected_category_0.set(0)
 
     def categorize_target(self,target_col, value_1, category_1, value_2, category_2):
+        '''
+        Categorize target by converting its 
+        string values (i.e., No/Yes) to 0/1,
+        respectively.
+
+        :param target_col: Name of column whose values to convert.
+        :type target_col: string
+
+        :param value_1: A column value
+        :type value_1: string
+
+        :param value_2: A column value
+        :type value_1: string
+
+        :param category_1: A number, either 0 or 1
+        :type category_1: int
+
+        :param category_2: A number, either 0 or 1
+        :type category_2: int     
+        '''
 
         # Set df as global variable.  Without it, the application breaks.
         global df
@@ -1668,6 +2098,11 @@ class BinaryClassification(tk.Toplevel):
             )
 
 class DropColumns(tk.Toplevel):
+    '''
+    This class is for the secondary window,
+    DropColumns, of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
 
     # Set df variable as global variable to enable all functions to modify it
     global df
@@ -1770,6 +2205,12 @@ class DropColumns(tk.Toplevel):
                 )
 
 class FillForward(tk.Toplevel):
+    '''
+    This class is for the secondary window,
+    FillForward, of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
+
     # Set df variable as global variable to enable all functions to modify it
     global df
 
@@ -1898,7 +2339,12 @@ class FillForward(tk.Toplevel):
         close_btn.grid(row=4, column=0, padx=5, pady=5, sticky='E')
 
     def populate_dict(self):
-        # clear dictionary
+        '''
+        Clear and populate dictionary 
+        with columns (keys) and list of values (values).
+        '''
+
+        # Clear dictionary
         self.a_dict = {}
         # populate dictionary with initial or updated keys (i.e., column names) and 
         # values (i.e., list of unique column values)
@@ -1946,6 +2392,11 @@ class FillForward(tk.Toplevel):
             )
 
 class ImputeNullsWithMean(tk.Toplevel):
+    '''
+    This class is for the secondary window,
+    ImputeNullsWithMean, of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
 
     # Set df variable as global variable to enable all functions to modify it
     global df
@@ -2091,6 +2542,11 @@ class ImputeNullsWithMean(tk.Toplevel):
         close_btn.grid(row=4, column=0, padx=5, pady=5, sticky='E')
 
     def populate_dict(self):
+        '''
+        Clear and populate dictionary 
+        with columns (keys) and list of values (values).
+        '''
+
         # clear dictionary
         self.a_dict = {}
         # populate dictionary with initial or updated keys (i.e., column names) and 
@@ -2150,6 +2606,11 @@ class ImputeNullsWithMean(tk.Toplevel):
             )
 
 class RemoveRowsWithXNullsWindow(tk.Toplevel):
+    '''
+    This class is for the secondary window
+    RemoveRowsWithXNulls of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
 
     # Set df variable as global variable to enable all functions to modify it
     global df
@@ -2227,7 +2688,14 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
         close_btn.grid(row=0, column=1, padx=5, pady=5, sticky='E')
 
     def remove_rows(self, pct):
-        '''Remove rows based on a percentage of missing values'''
+        '''
+        Drop rows based on a percentage of missing values.
+        For example, if a row is missing 90% (9/10) of its
+        values, then it is dropped.
+
+        :param pct: Percent threshold of missing values to trigger drop.
+        :type pct: int
+        '''
 
         # Convert percent integer value to a decimal
         pct = pct/100
@@ -2270,6 +2738,11 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
                 )
 
 class FillAllNullsWindow(tk.Toplevel):
+    '''
+    This class is for the secondary window,
+    FillAllNulls, of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
 
     # Set df variable as global variable to enable all functions to modify it
     global df
@@ -2337,7 +2810,12 @@ class FillAllNullsWindow(tk.Toplevel):
         fillna_all_close_btn.grid(row=1, column=1, padx=5, pady=5)
 
     def fill_all_nulls(self, impute_value):
-        '''Impute null values'''
+        '''
+        Impute null values with a specific value.
+        
+        :param impute_value: Value with which to replace null value
+        :type impute_value: string, int, or float
+        '''
 
         # Get number of nulls    
         num_of_nulls = int(df.isnull().sum().sum())
@@ -2354,7 +2832,9 @@ class FillAllNullsWindow(tk.Toplevel):
                 title="Impute Nulls", 
                 message=f'{num_of_nulls} nulls imputed.')
     
-root = PandasDataCleaner()
-# Set global font.  Doesn't apply to fields.  
-font.nametofont('TkDefaultFont').configure(size=15)
-root.mainloop()
+# Bootstrap application
+if __name__ == "__main__":
+    root = PandasDataCleaner()
+    # Set global font.  Doesn't apply to fields.  
+    font.nametofont('TkDefaultFont').configure(size=15)
+    root.mainloop()
