@@ -313,6 +313,12 @@ class PandasDataCleaner(tk.Tk):
             font=("Segoe UI", menu_option_font), 
             command=self.convert_to_lowercase)
 
+        # Create Change Chars to Lowercase menu option
+        menu_clean_string.add_command(
+            label='Replace Synonyms with Single Word', 
+            font=("Segoe UI", menu_option_font), 
+            command=self.open_replace_synonyms_window)
+
         # Create Replace NA with N.A. menu option
         menu_clean_string.add_command(
             label='Replace NA (False NaN) with N.A.', 
@@ -587,6 +593,7 @@ class PandasDataCleaner(tk.Tk):
         :raises ValueError: if date_text is not in correct date format
         :return True/False: True, if text is in date format, otherwise False
         '''
+
         try:
             if date_text != datetime.strptime(date_text, "%Y-%m-%d").strftime('%Y-%m-%d'):
                 raise ValueError
@@ -1128,6 +1135,372 @@ class PandasDataCleaner(tk.Tk):
             window = RemoveUnitsOfMeasurment(self)
             window.grab_set()
 
+    def open_replace_synonyms_window(self):
+        '''Open Replace Synonyms Window.'''
+
+        # Set df variable as global variable to enable all functions to modify it
+        global df
+
+        # Check for any object columns:
+        object_cols = df.select_dtypes(include='object')
+
+        # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
+        if len(df) == 0:
+            messagebox.showerror(
+                title="No Data Present", 
+                message='Please load CSV file.'
+                )
+        # If there are no object columns, then exit
+        elif object_cols.shape[1] == 0:
+            messagebox.showinfo(
+                title="No Object Columns", 
+                message='No object columns exist.'
+                )
+        # Open window
+        else:
+            window = ReplaceSynonyms(self)
+            window.grab_set()
+
+class ReplaceSynonyms(tk.Toplevel):
+    '''
+    This class is for the secondary window,
+    FillF, of the TKinter application.
+    It inherits from Tkinter's tk.Toplevel class.
+    '''
+
+    # Set df variable as global variable to enable all functions to modify it
+    global df
+
+    def __init__(self, root):
+        '''The constuctor for the ReplaceSynonyms class.'''
+        super().__init__(root)
+
+        # Set window properties
+        self.geometry('770x650')
+        try:
+            self.iconbitmap('./images/panda.ico')
+        except:
+            self.iconbitmap(my_dir / './images/panda.ico')
+        self.resizable(0,0)
+        self.title('Replace Synonyms...')
+        self.configure(bg='#1ac6ff')
+
+        # Create top left frame for listbox displaying column names
+        left_frame = tk.Frame(self, bg='#1ac6ff', width=250, height=370)
+        left_frame.grid(row=0, column=0, padx=5, pady=5)
+        left_frame.grid_propagate(0)
+        #left_frame.grid_columnconfigure(0, weight=1) # disabled to remove gap between scroll and lb
+
+        # Create top center frame for listbox displaying column values
+        center_frame = tk.Frame(self, bg='#1ac6ff', width=250, height=370)
+        center_frame.grid(row=0, column=1, padx=5, pady=5)
+        center_frame.grid_propagate(0)
+        #center_frame.grid_columnconfigure(0, weight=1)
+
+        # Create top right frame for listbox displaying column values
+        right_frame = tk.Frame(self, bg='#1ac6ff', width=240, height=370)
+        right_frame.grid(row=0, column=2, padx=5, pady=5)
+        right_frame.grid_propagate(0)
+        #right_frame.grid_columnconfigure(0, weight=1)
+
+        # Create middle frame for text widget presenting column values
+        middle_frame = tk.Frame(self, bg='#1ac6ff', width=750, height=200)
+        middle_frame.grid(row=1, column=0, columnspan=3, padx=0, pady=5)
+        middle_frame.grid_propagate(0)
+        middle_frame.grid_columnconfigure(0, weight=1) #Needed for scrollbar to appear
+
+        # Create frame for buttons
+        bottom_frame = tk.Frame(self, bg='#1ac6ff', width=750, height=50)
+        bottom_frame.grid(row=2, column=0, columnspan=3, padx=5, pady=5)
+        bottom_frame.grid_propagate(0)
+        #bottom_frame.grid_columnconfigure(0, weight=1)
+
+        # Create a label to place above the column names listbox 
+        col_names_listbox_label = ttk.Label(
+            left_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='In Column...'
+            )
+        col_names_listbox_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+
+        # The following creates a listbox and puts it in left frame
+        # 1. Get a list of columns that are objects.
+        self.cols_list = df.select_dtypes(include='object').columns.tolist()
+
+        # 3. Convert list to tuple, because tk.StringVar takes a tuple argument.
+        cols_tuple = tuple(self.cols_list)
+        
+        # 4. Create tk.StringVar object for listbox and assign it to the col_list_var variable
+        col_list_var = tk.StringVar(value=cols_tuple)
+        
+        # 5. Create listbox
+        self.col_listbox = tk.Listbox(
+            left_frame, 
+            listvariable=col_list_var, 
+            selectmode='browse',
+            exportselection=False)
+        
+        # 6. Display listbox in frame
+        self.col_listbox.grid(row=1, column=0, padx=0, pady=0, sticky='NESW')
+
+        # 7. Bind listbox to column_selection function.  When a column is selected, in the listbox,
+        #    it's unique values are displayed in the text widget.
+        self.col_listbox.bind('<<ListboxSelect>>', self.column_selection)
+
+        # Create scrollbar for listbox
+        col_lb_scroll = ttk.Scrollbar(left_frame, orient='vertical', command=self.col_listbox.yview)
+        col_lb_scroll.grid(row=1, column=1, padx=0, pady=0, sticky='NSEW')
+        self.col_listbox['yscrollcommand'] = col_lb_scroll.set
+
+        # Create dictionary for columns and their unique values (e.g., 'yes' and 'no')
+        # This dictionary is needed to dynamically populate the labels as 
+        # the user selects a column from the listbox
+        self.a_dict = {}
+
+        # Populate the dictionary with columns and values
+        self.populate_dict()
+
+        # Create a label to place above the first column values listbox 
+        col_values_listbox_1_label = ttk.Label(
+            center_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Replace...'
+            )
+        col_values_listbox_1_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+
+        # Create first listbox to contain column values.  When an item (column name) is selected in the 
+        # col_listbox, the values_listbox_1 is populated with the column's values.
+        # 1. Create empty tuple.  
+        col_values_1_tpl = ()
+
+        # 2. Create listvariable for listbox. 
+        col_values_1_var = tk.StringVar(value=col_values_1_tpl)
+
+        # 3. Create listbox
+        self.col_values_listbox_1 = tk.Listbox(
+            center_frame, 
+            listvariable=col_values_1_var, 
+            selectmode='extended',
+            exportselection=False)        
+
+        # Display listbox in center_frame
+        self.col_values_listbox_1.grid(row=1, column=0, padx=0, pady=0)
+
+        # Bind listbox to column_selection function.  When a column is selected, in the listbox,
+        # it's unique values are displayed in the text widget.
+        #self.values_listbox_1.bind('<<ListboxSelect>>', self.column_selection)    
+
+        # Create scrollbars for listbox containing column values
+        col_values_lb_scroll_1 = ttk.Scrollbar(
+            center_frame, 
+            orient='vertical', 
+            command=self.col_values_listbox_1.yview)
+        col_values_lb_scroll_1.grid(row=1, column=1, pady=0, sticky='NSEW')
+        self.col_values_listbox_1['yscrollcommand'] = col_values_lb_scroll_1.set
+
+        col_values_lb_scroll_1_h = ttk.Scrollbar(
+            center_frame, 
+            orient='horizontal', 
+            command=self.col_values_listbox_1.xview)
+        col_values_lb_scroll_1_h.grid(row=2, column=0, pady=0, sticky='NSEW')
+        self.col_values_listbox_1['xscrollcommand'] = col_values_lb_scroll_1_h.set
+
+        # Create a label to place above the second column values listbox 
+        col_values_listbox_2_label = ttk.Label(
+            right_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='With...'
+            )
+        col_values_listbox_2_label.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+
+        # Create second listbox containing column values.
+        # 1. Create empty tuple.
+        col_values_2_tpl = ()
+
+        # 2. Create list variable for listbox.  This also populates listbox.
+        col_values_2_var = tk.StringVar(value=col_values_2_tpl)
+
+        # 3. Create listbox
+        self.col_values_listbox_2 = tk.Listbox(
+            right_frame, 
+            listvariable=col_values_2_var, 
+            selectmode='browse',
+            exportselection=False)        
+
+        # Display first listbox containing column values in frame
+        self.col_values_listbox_2.grid(row=1, column=0, padx=0, pady=0)
+
+        # Bind listbox to column_selection function.  When a column is selected, in the listbox,
+        # it's unique values are displayed in the text widget.
+        #self.values_listbox_2.bind('<<ListboxSelect>>', self.column_selection)    
+
+        # Create scrollbars for second listbox containing column values
+        col_values_lb_scroll_2 = ttk.Scrollbar(
+            right_frame, 
+            orient='vertical', 
+            command=self.col_values_listbox_2.yview)
+        col_values_lb_scroll_2.grid(row=1, column=1, pady=0, sticky='NSEW')
+        self.col_values_listbox_2['yscrollcommand'] = col_values_lb_scroll_2.set
+
+        col_values_lb_scroll_2_h = ttk.Scrollbar(
+            right_frame, 
+            orient='horizontal', 
+            command=self.col_values_listbox_2.xview)
+        col_values_lb_scroll_2_h.grid(row=2, column=0, pady=0, sticky='NSEW')
+        self.col_values_listbox_2['xscrollcommand'] = col_values_lb_scroll_2_h.set
+
+        # Create a label to place above the text widget 
+        # that indicates that the widget displays values of the selected column
+        column_values_tx_label = ttk.Label(
+            middle_frame, 
+            background='#1ac6ff',
+            font = ('Segoe UI', 14),
+            text='Column Values'
+            )
+        column_values_tx_label.grid(row=0, column=0, padx=0, pady=5, sticky='W')
+
+        # Create a text widget to present the values when a column is selected.
+        # Displaying values gives the user more insight into which impute method to use.
+        self.column_values_text = tk.Text(
+            middle_frame, 
+            font=("Segoe UI", 14),
+            height=5,
+            wrap=WORD)
+        self.column_values_text.grid(row=1, column=0, padx=0, pady=5, sticky='NSEW')
+        
+        # Create scrollbar for text widget
+        text_scroll = ttk.Scrollbar(middle_frame, orient='vertical', command=self.column_values_text.yview)
+        text_scroll.grid(row=1, column=1, pady=5, sticky='NSEW')
+        self.column_values_text['yscrollcommand'] = text_scroll.set
+
+        # Create buttons and put in right frame
+        replace_btn = ttk.Button(
+            bottom_frame,
+            text='Replace',
+            width=16, command=self.reduce_synonyms_to_one_word)
+        replace_btn.grid(row=0, column=0, padx=5, pady=5, sticky='E')
+
+        close_btn = ttk.Button(
+            bottom_frame, 
+            text='Close', 
+            width=16, 
+            command=self.destroy
+            )
+        close_btn.grid(row=0, column=1, padx=5, pady=5, sticky='W')
+
+    def populate_dict(self):
+        '''
+        Clear and populate dictionary 
+        with columns (keys) and list of values (values).
+        '''
+
+        # Clear dictionary
+        self.a_dict = {}
+        # populate dictionary with initial or updated keys (i.e., column names) and 
+        # values (i.e., list of unique column values)
+        for col in self.cols_list:
+            self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
+
+    def column_selection(self, event):
+        '''
+        Receive event that represents a selection in the col_listbox selection.
+        Upon receipt, populate/update the text widget and listboxes (col_values) 
+        
+        :param event: Listbox selection event
+        :type event: object
+        '''
+
+        #-----BEGIN Updating Text Widget-----#
+
+        # Get the index of the listbox item
+        selected_index = self.col_listbox.curselection()
+        # Use index to get listbox item (i.e., column name)
+        column_name = (self.col_listbox.get(selected_index))
+        # Get columns' values
+        list_of_values = self.a_dict[column_name]
+        # Enable text widget
+        self.column_values_text.config(state="normal")
+        # Delete any text that may be in text widget
+        self.column_values_text.delete("1.0","end")
+        # Enter column name into to text widget
+        self.column_values_text.insert(END, column_name + ' Values:  ')
+        # Enter column's values into text widget
+        for value in list_of_values:
+            self.column_values_text.insert(END, str(value) + ', ')
+        # Delete ending space from text widget
+        self.column_values_text.delete("end-2c")
+        # Delete ending comma from text widget
+        self.column_values_text.delete("end-2c")
+        # Disable text widget
+        self.column_values_text.config(state="disabled")
+
+        #-----END Updating Text Widget-----#
+
+        #-----BEGIN Updating Listbox Widgets-----#
+
+        # Clear listboxes
+        self.col_values_listbox_1.delete(0, END)
+        self.col_values_listbox_2.delete(0, END)
+        # Populate listboxes
+        for value in list_of_values:
+            self.col_values_listbox_1.insert(END, value)
+            self.col_values_listbox_2.insert(END, value)
+
+        #-----END Updating Listbox Widgets-----#      
+
+    def reduce_synonyms_to_one_word(self):
+        '''
+        Reduce synonyms to one word.
+        For example, if a column has the following terms:
+        {'Country': ['US', 'U.S.', 'America, United States', 'United States of America', 'Canada']}, 
+        after reducing synonyms, the column appears as:
+        {'Country': ['United States of America', 'Canada']} 
+        '''
+
+        global df
+
+        # Get the selected listbox item (column name)
+        #col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
+        # Get index of selected listbox item
+        col_listbox_index = self.col_listbox.curselection()
+        # Use index to get selected listbox item
+        column_name = self.col_listbox.get(col_listbox_index)
+
+        # Get the selected listbox items (column values to be replaced) and put in a list
+        replace_these_values = [self.col_values_listbox_1.get(i) for i in self.col_values_listbox_1.curselection()]
+
+        # Get the selected listbox item (substitute for column values to be replaced)
+        col_values_listbox_2_index = self.col_values_listbox_2.curselection()
+        # Use index to get selected listbox item
+        with_this_value = self.col_values_listbox_2.get(col_values_listbox_2_index)
+
+        # This list is needed to hold elements in the replace_the_values list,
+        # after being checked for special characters. If spec chars exist in
+        # an element, the application will miss it during replacment operation. 
+        replace_these_vals_cleaned = []
+        
+        # Validate that the synonyms to be replaced don't have special characters. 
+        for col_value in replace_these_values:
+            col_value_before = col_value
+            col_value = re.sub(r'[^a-zA-Z0-9\s]','',col_value)
+            df = df.replace(col_value_before, col_value)
+            replace_these_vals_cleaned.append(col_value)
+
+        # Replace synonyms
+        for col_value in replace_these_vals_cleaned:
+            df[column_name] = df[column_name].str.replace(col_value, with_this_value)
+            self.populate_dict()
+            self.column_selection(None)
+            
+        # Send confirmation
+        messagebox.showinfo(
+            title="Reduce Synonyms to One Word", 
+            message=f'Synonyms replaced.'
+            )
+
 class RemoveUnitsOfMeasurment(tk.Toplevel):
     '''
     This class is for the secondary window,
@@ -1139,6 +1512,7 @@ class RemoveUnitsOfMeasurment(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the RemoveUnitsOfMeasurement class.'''
         super().__init__(root)
 
         # Set window properties
@@ -1289,8 +1663,11 @@ class RemoveUnitsOfMeasurment(tk.Toplevel):
 
     def column_selection(self, event):
         '''
-        Determine and return the 
-        element selected in listbox.
+        Receive event that represents a selection in the col_listbox selection.
+        Upon receipt, populate/update the text widget with col_values
+        
+        :param event: Listbox selection event
+        :type event: object
         '''
         
         # Get the index of the listbox item
@@ -1389,6 +1766,7 @@ class RemovePercents(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the RemovePercents class.'''
         super().__init__(root)
 
         # Set window properties
@@ -1563,8 +1941,11 @@ class RemovePercents(tk.Toplevel):
     
     def column_selection(self, event):
         '''
-        Determine and return the 
-        element selected in listbox.
+        Receive event that represents a selection in the col_listbox selection.
+        Upon receipt, populate/update the text widget with col_values 
+        
+        :param event: Listbox selection event
+        :type event: object
         '''
         
         # Get the index of the listbox item
@@ -1664,6 +2045,7 @@ class DummifyColumns(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the DummifyColumns class.'''
         super().__init__(root)
 
         # Set window properties
@@ -1801,6 +2183,7 @@ class BinaryClassification(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the BinaryClassification class.'''
         super().__init__(root)
 
         # Set window properties
@@ -2022,12 +2405,13 @@ class BinaryClassification(tk.Toplevel):
 
     def column_selection(self, event):
         '''
-        Receive event from listbox monitor.
+        Receive event that represents a selection in the col_listbox selection.
         Update labels in response to listbox selection
 
         :param event: Mouse click selection of listbox item
         :type event: object
         '''
+
         # Get the index of the listbox item (i.e. column name)
         selected_index = self.col_listbox.curselection()
         # Use index to get listbox item (i.e., column name)
@@ -2108,6 +2492,7 @@ class DropColumns(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the DropColumns class.'''
         super().__init__(root)
 
         # Set window properties
@@ -2132,14 +2517,17 @@ class DropColumns(tk.Toplevel):
         right_frame.grid_propagate(0)
 
         # The following creates a list box
-        # 1. Get column indexes from the dataframe
+        # 1. Get column names
         col_idxs = df.columns
         # 2. Convert the index to a tuple
         cols = tuple(col_idxs)
-        # 3. Create listbox String Variable
+        # 3. Create listvariable for listbox.  This step also populates listbox
         col_list_var = tk.StringVar(value=cols)
         # 4. Create listlistbox and place in left frame
-        self.col_listbox = tk.Listbox(left_frame, listvariable=col_list_var, selectmode='extended')
+        self.col_listbox = tk.Listbox(
+            left_frame, 
+            listvariable=col_list_var, 
+            selectmode='extended')
         # 5. Display listbox in frame
         self.col_listbox.grid(row=1, column=0, padx=0, pady=5, sticky='NS')
 
@@ -2215,6 +2603,7 @@ class FillForward(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the FillForward class.'''
         super().__init__(root)
 
         # Set window properties
@@ -2352,6 +2741,14 @@ class FillForward(tk.Toplevel):
             self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
 
     def column_selection(self, event):
+        '''
+        Receive event that represents a selection in the col_listbox selection.
+        Upon receipt, populate/update the text widget with col_values.
+        
+        :param event: Listbox selection event
+        :type event: object
+        '''
+
         # Get the index of the listbox item
         selected_index = self.col_listbox.curselection()
         # Use index to get listbox item (i.e., column name)
@@ -2375,10 +2772,12 @@ class FillForward(tk.Toplevel):
         self.column_values_text.config(state="disabled")
 
     def fill_forward(self):
+        '''Impute missing values using the ffill and bfill methods'''
+
         # Get the selected listbox items and put in a list
         col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
         col_str = ', '.join(col_list)
-        # Loop through col_list to impute each column with selected value (i.e., mean, mode, median)
+        # Loop through col_list to impute missing values with the ffill and bfill methods
         for col in col_list:
             df[col].fillna(method='ffill', inplace=True)
             df[col].fillna(method='bfill', inplace=True)
@@ -2402,6 +2801,7 @@ class ImputeNullsWithMean(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the ImputeNullwithMean class.'''
         super().__init__(root)
 
         # Set window properties
@@ -2555,6 +2955,14 @@ class ImputeNullsWithMean(tk.Toplevel):
             self.a_dict[col] = df[col].sort_values(na_position='first').unique().tolist()
 
     def column_selection(self, event):
+        '''
+        Receive event that represents a selection in the col_listbox selection.
+        Upon receipt, populate/update the text widget with col_values.
+        
+        :param event: Listbox selection event
+        :type event: object
+        '''
+
         # Get the index of the listbox item
         selected_index = self.col_listbox.curselection()
         # Use index to get listbox item (i.e., column name)
@@ -2578,10 +2986,17 @@ class ImputeNullsWithMean(tk.Toplevel):
         self.column_values_text.config(state="disabled")
 
     def impute_with_mmm(self, impute_method):
+        '''
+        Impute missing values with either mean, mode, or median.
+
+        :param impute_method: the method with which to impute missing values
+        :type impute_method: string
+        '''
         # Get the selected listbox items and put in a list
         impute_value = None
         col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
         col_str = ', '.join(col_list)
+
         # Loop through col_list to impute each column with selected value (i.e., mean, mode, median)
         for col in col_list:
             if impute_method == 'mean':
@@ -2599,6 +3014,7 @@ class ImputeNullsWithMean(tk.Toplevel):
                 df[col].fillna(impute_value, inplace=True)
                 self.populate_dict()
                 self.column_selection(None)
+
         # Send confirmation
         messagebox.showinfo(
             title="Impute with MMM", 
@@ -2616,6 +3032,7 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the RemoveRowsWithXNullsWindow class.'''
         super().__init__(root)
 
         # Set window properties
@@ -2748,6 +3165,7 @@ class FillAllNullsWindow(tk.Toplevel):
     global df
 
     def __init__(self, root):
+        '''The constuctor for the FillAllNullsWindow class.'''
         super().__init__(root)
 
         # Set window properties
