@@ -11,6 +11,15 @@ Pandas Data Cleaner is a Python interactive data cleaning tool that allows users
 
 ## Installation
 
+### Executable
+* [Download](https://pandasdatacleaner.com/download/) the zip file for your specific operating system.
+* Unzip the package.
+* Find and run the pandas_data_cleaner.exe file.
+
+### Source
+* Clone or download the repo.
+* Find and run the pandas_data_cleaner.py file.
+
 
 ## Documentation
 
