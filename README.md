@@ -20,7 +20,9 @@ See the complete documentation at https://pandasdatacleaner.com/documentation/
 
 |Feature|Description|
 |---|---|
-|[Import Data](https://pandasdatacleaner.com/documentation/#import-data)|Imports data from a CSV file.|
-|[Fix Missing Data -> Drop All Nulls](https://pandasdatacleaner.com/documentation/#drop-all-nulls)|Imports data from a CSV file|
+|[**Import Data**](https://pandasdatacleaner.com/documentation/#import-data)|Imports data from a CSV file.|
+|[**Fix Missing Data -> Drop All Nulls**](https://pandasdatacleaner.com/documentation/#drop-all-nulls)|Drops all nulls from dataframe.|
+|[**Fix Missing Data -> Fill All Nulls w/Specific Value**](https://pandasdatacleaner.com/documentation/#fill-all-nulls-with-specific-value)|Imputes all nulls with a specific value at dataframe level.|
+|[**Fix Missing Data -> Drop Rows with X Pct of Nulls**](https://pandasdatacleaner.com/documentation/#drop-rows-with-x-pct-of-nulls)|Finds and removes rows with a certain percentage of missing values.|
 
 
