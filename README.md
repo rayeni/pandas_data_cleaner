@@ -51,3 +51,14 @@ See the complete documentation at https://pandasdatacleaner.com/documentation/
 |[**DateTime -> Index to DatetimeIndex**](https://pandasdatacleaner.com/documentation/#index-datetime)|This feature determines if the Index is comprised of date data.  If it has date data, then it is converted to a DatetimeIndex.|
 
 
+## Bug reports & Feature Requests
+
+For bug reports and feature requests, open an issue [here](https://github.com/rayeni/pandas_data_cleaner/issues)
+
+## License
+
+Licensed under [BSD](https://github.com/rayeni/pandas_data_cleaner/blob/main/LICENSE.txt)
+
+## Contact
+
+info@pandasdatacleaner.com
