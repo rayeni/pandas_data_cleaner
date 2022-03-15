@@ -53,6 +53,7 @@ See the complete documentation at https://pandasdatacleaner.com/documentation/
 
 ## Bug reports & Feature Requests
 
+I acknowledge that this tool needs a lot of refinement.  That is where you come in. 
 For bug reports and feature requests, open an issue [here](https://github.com/rayeni/pandas_data_cleaner/issues)
 
 ## License
