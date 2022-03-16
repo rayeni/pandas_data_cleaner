@@ -2,6 +2,8 @@
 import pandas as pd
 import sklearn.impute
 
+import webbrowser
+
 from datetime import datetime
 import io
 
@@ -14,7 +16,9 @@ import tkinter.font as font
 from tkinter.constants import WORD
 from tkinter import ttk, END, StringVar, IntVar, messagebox, filedialog
 
-from PIL import ImageTk, Image
+# from PIL import ImageTk, Image
+import PIL.ImageTk
+import PIL.Image
 
 from pathlib import Path
 
@@ -49,7 +53,7 @@ class PandasDataCleaner(tk.Tk):
         except:
             self.iconbitmap(my_dir / './images/panda.ico')
         # Set window dimensions
-        self.geometry("800x350")
+        self.geometry("800x290")
         # Disable resizing window
         self.resizable(False, False)
         self.configure(bg='#1ac6ff')
@@ -82,9 +86,11 @@ class PandasDataCleaner(tk.Tk):
 
         # Create logo
         try:
-            self.logo = ImageTk.PhotoImage(Image.open('./images/logo.png'))
+            #self.logo = ImageTk.PhotoImage(Image.open('./images/logo.png'))
+            self.logo = PIL.ImageTk.PhotoImage(PIL.Image.open('./images/logo.png'))
         except:
-            self.logo = ImageTk.PhotoImage(Image.open(my_dir / './images/logo.png'))
+            #self.logo = ImageTk.PhotoImage(Image.open(my_dir / './images/logo.png'))
+            self.logo = PIL.ImageTk.PhotoImage(PIL.Image.open(my_dir / './images/logo.png'))
         # Create label for logo
         logo_label = tk.Label(logo_frame, bg='#1ac6ff', image=self.logo)
         # Place logo in logo_frame
@@ -175,7 +181,7 @@ class PandasDataCleaner(tk.Tk):
 
         # Create "Remove Rows with High% of Missing Data" menu option
         menu_missing_data.add_command(
-            label='Remove Rows with X Pct of Nulls', 
+            label='Drop Rows with X Pct of Nulls', 
             font=("Segoe UI", menu_option_font), 
             command=self.open_remove_rows_with_x_nulls_window)
 
@@ -237,12 +243,6 @@ class PandasDataCleaner(tk.Tk):
         # Create Clean Numerics menu
         menu_clean_numeric = tk.Menu(mb_clean_numeric, tearoff=False)
 
-        # Create Numeric Text -> Int menu option
-        #menu_clean_numeric.add_command(
-        #    label='Numeric Text -> Int',
-        #    font=('Segoe UI', menu_option_font),
-        #    command='')
-
         # Create Remove % Signs menu option
         menu_clean_numeric.add_command(
             label='Remove Percent Signs',
@@ -251,7 +251,7 @@ class PandasDataCleaner(tk.Tk):
 
         # Create Remove Units Measurement menu option
         menu_clean_numeric.add_command(
-            label='Remove Units Measurement',
+            label='Remove Units of Measurement',
             font=('Segoe UI', menu_option_font),
             command=self.open_remove_units_of_measure_window)
 
@@ -356,6 +356,24 @@ class PandasDataCleaner(tk.Tk):
 
         # Display menu button in frame
         mb_datetime.grid(row=1, column=2, padx=5, pady=5, sticky='E')
+
+        # ---SPONSOR BUTTON Last Row, Second Column--- #
+
+        # Create sponsor button icon
+        try:
+            self.button_image = PIL.ImageTk.PhotoImage(PIL.Image.open('./images/heart.png'))
+        except:
+            self.button_image = PIL.ImageTk.PhotoImage(PIL.Image.open(my_dir / './images/heart.png'))
+
+        # Create sponsor button
+        sponsor_btn = tk.Button(
+            func_frame_1,
+            image=self.button_image,
+            bg='#1ac6ff',
+            activebackground='#1ac6ff',
+            border=0,
+            command=self.open_sponsor_page)
+        sponsor_btn.grid(row=2, column=1, padx=5, pady=5)
 
     def import_csv(self):
         '''Import csv file into dataframe.'''
@@ -478,6 +496,11 @@ class PandasDataCleaner(tk.Tk):
         if question == 1:
             self.destroy()
 
+    def open_sponsor_page(self):
+        '''Open sponsor page in web browser'''
+
+        webbrowser.open("https://pandasdatacleaner.com/support-pdc/")
+
     def change_col_names_to_lowercase(self):
         '''Change column names to lowercase.'''
 
@@ -567,7 +590,7 @@ class PandasDataCleaner(tk.Tk):
             else:
                 # Confirm with user to impute nulls
                 question = messagebox.askyesno(
-                    title="Impute Nulls",
+                    title="Impute Nulls with KNN",
                     message=f"Impute {num_of_nulls} nulls? The process may take a few moments."
                     )
                 # If user answers Yes, then impute nulls
@@ -578,7 +601,7 @@ class PandasDataCleaner(tk.Tk):
                     df = pd.DataFrame(impKNN.fit_transform(df),columns=df.columns)
                     # Send confirmation.
                     messagebox.showinfo(
-                        title="Impute Nulls", 
+                        title="Impute Nulls with KNN", 
                         message=f'{num_of_nulls} nulls imputed.'
                         )
 
@@ -1752,7 +1775,7 @@ class RemoveUnitsOfMeasurment(tk.Toplevel):
         # Send confirmation
         messagebox.showinfo(
             title="Remove Units of Measurment", 
-            message=f'Units removed from Column(s) {col_str} values.'
+            message=f'Units of measurement removed.'
             )
 
 class RemovePercents(tk.Toplevel):
@@ -3042,7 +3065,7 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
         except:
             self.iconbitmap(my_dir / './images/panda.ico')
         self.resizable(0,0)
-        self.title('Remove Rows with High Number of Missing Values')
+        self.title('Drop Rows with High Number of Missing Values')
         self.configure(bg='#1ac6ff')
 
         # Create top frame for window
@@ -3091,7 +3114,7 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
         # Create button widget to fill nulls
         remove_rows_btn = ttk.Button(
             bottom_frame,
-            text='Remove Rows',
+            text='Drop Rows',
             command=lambda: self.remove_rows(self.selected_percent.get())
             )
         remove_rows_btn.grid(row=0, column=0, padx=5, pady=5, sticky='W')
