@@ -69,9 +69,11 @@ jobs:
 
     steps:
       - checkout
-      - run: pip show pip
+      - run: pip3 show pip3
+      - run: pip3 show python3
       # - run: pip install Pillow
-      # - run: conda install pandas=1.2.4
+      # - run: sudo apt install python3-pil
+      # - run: pip install pandas==1.2.4
       # - run: conda install scikit-learn=0.24.1
       # - run: pip install pyinstaller
       # # Uncomment the following pyinstaller command to debug imports during runtime
