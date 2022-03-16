@@ -69,9 +69,11 @@ jobs:
 
     steps:
       - checkout
+      - run: sudo apt update
+      - run: sudo apt upgrade
       - run: sudo apt install python3-pip
       - run: sudo apt install python3-pil
-      - run: sudo apt install python3-pil.imagetk
+      #- run: sudo apt install python3-pil.imagetk
       - run: sudo pip3 install pandas==1.2.4
       - run: sudo pip3 install scikit-learn==0.24.1
       - run: sudo pip3 install pyinstaller
