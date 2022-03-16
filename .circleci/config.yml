@@ -69,8 +69,8 @@ jobs:
 
     steps:
       - checkout
-      - run: pip3 show pip3
-      - run: pip3 show python3
+      #- run: pip3 show pip3
+      - run: python3 --version
       # - run: pip install Pillow
       # - run: sudo apt install python3-pil
       # - run: pip install pandas==1.2.4
