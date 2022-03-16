@@ -6,7 +6,7 @@ Pandas Data Cleaner is a Python interactive data cleaning tool that allows users
 
 *  Simply point-and-click to clean data.
 *  Easy to read [documentation.](https://pandasdatacleaner.com/documentation/)
-*  No dependencies for standalone versions of Windows, macOS, and Ubuntu Linux
+*  No Python (installed)? No problem.  Simply [download](https://pandasdatacleaner.com/download/) the prepackaged application for your OS (Windows, macOS, or Ubuntu Linux).
 *  If running from source, dependencies are Pandas, Scikit-learn, and Pillow
 
 ## Installation
