@@ -53,7 +53,7 @@ jobs:
       #- run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
       # Uncomment to check directory listing
       - run: ls -l dist
-      - run: dist/pandas_data_cleaner
+      - run: ls -l dist/pandas_data_cleaner
       # - run: mv dist dist-macos
       # - run: tar -cvzf dist-macos.tar.gz dist-macos
 
