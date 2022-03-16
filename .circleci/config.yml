@@ -3,31 +3,75 @@ version: 2.1
 orbs:
   win: circleci/windows@2.2.0 
 
-jobs:
-  build-with-windows:
-    executor:
-      name: win/default
-      shell: bash.exe
-
-    working_directory: ~/pandas_data_cleaner
-
+commands:
+  build:
     steps:
       - checkout
-
       - run: pip install Pillow
       - run: pip install --upgrade 'setuptools<45.0.0'
       - run: conda install pandas=1.2.4
       - run: conda install scikit-learn=0.24.1
       - run: pip install pyinstaller
-      - run: pip list
+      # Uncomment the following pyinstaller command to debug imports during runtime
+      # and comment out the other one.
       - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
+      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+      # Uncomment the following to debug imports during runtime
       - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
-      #- run: tar -cvzf dist.tar.gz dist
 
-      #- store_artifacts:
-      #    path: ~/pandas_data_cleaner/dist.tar.gz
+jobs:
+  # build-with-windows:
+  #   executor:
+  #     name: win/default
+  #     shell: bash.exe
+
+  #   working_directory: ~/pandas_data_cleaner
+
+  #   steps:
+  #     - build
+  #     - run: mv dist dist-windows
+  #     - run: tar -cvzf dist-windows.tar.gz dist-windows
+
+  #     - store_artifacts:
+  #         path: ~/pandas_data_cleaner/dist-windows.tar.gz
+  
+  build-with-macos:
+    macos:
+      xcode: "12.5.1"
+
+    working_directory: ~/pandas_data_cleaner
+
+    steps:
+      - build
+      - run: mv dist dist-macos
+      - run: tar -cvzf dist-macos.tar.gz dist-macos
+
+      - store_artifacts:
+          path: ~/pandas_data_cleaner/dist-macos.tar.gz
+    
+  # build-with-ubuntu:
+  #   machine:
+  #     image: ubuntu-2004:202010-01
+    
+  #   working_directory: ~/pandas_data_cleaner
+
+  #   steps:
+  #     - build
+  #     - run: mv dist dist-ubuntu
+  #     - run: tar -cvzf dist-ubuntu.tar.gz dist-ubuntu
+
+  #     - store_artifacts:
+  #         path: ~/pandas_data_cleaner/dist-ubuntu.tar.gz
 
 workflows:
-  build-with-windows:
+  # build-with-windows:
+  #   jobs:
+  #     - build-with-windows
+
+  build-with-macos:
     jobs:
-      - build-with-windows
+      - build-with-macos
+  
+  # build-with-ubuntu:
+  #   jobs:
+  #     - build-with-ubuntu
