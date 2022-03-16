@@ -44,6 +44,7 @@ jobs:
       - run: pip3 install Pillow
       - run: pip3 install pandas==1.2.4
       - run: pip3 install scikit-learn==0.24.1
+      - run: brew install python-tk
       - run: pip3 install pyinstaller
       # Uncomment the following pyinstaller command to debug imports during runtime
       # and comment out the other one.
