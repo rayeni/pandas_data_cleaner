@@ -3,15 +3,9 @@ version: 2.1
 orbs:
   win: circleci/windows@2.2.0 
 
-commands:
-  build:
-    steps:
-      # Uncomment the following pyinstaller command to debug imports during runtime
-      # and comment out the other one.
-      - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
-      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
-      # Uncomment the following to debug imports during runtime
-      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
+# commands:
+#   build:
+#     steps:
 
 jobs:
   # build-with-windows:
@@ -27,7 +21,12 @@ jobs:
   #     - run: conda install pandas=1.2.4
   #     - run: conda install scikit-learn=0.24.1
   #     - run: pip install pyinstaller
-  #     - build
+  #     # Uncomment the following pyinstaller command to debug imports during runtime
+  #     # and comment out the other one.
+  #     - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
+  #     #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+  #     # Uncomment the following to debug imports during runtime
+  #     #- run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
   #     - run: mv dist dist-windows
   #     - run: tar -cvzf dist-windows.tar.gz dist-windows
 
@@ -46,7 +45,12 @@ jobs:
       - run: pip3 install pandas==1.2.4
       - run: pip3 install scikit-learn==0.24.1
       - run: pip3 install pyinstaller
-      - build
+      # Uncomment the following pyinstaller command to debug imports during runtime
+      # and comment out the other one.
+      - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
+      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
+      # Uncomment the following to debug imports during runtime
+      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
       # - run: mv dist dist-macos
       # - run: tar -cvzf dist-macos.tar.gz dist-macos
 
@@ -65,7 +69,12 @@ jobs:
   #     - run: conda install pandas=1.2.4
   #     - run: conda install scikit-learn=0.24.1
   #     - run: pip install pyinstaller
-  #     - build
+  #     # Uncomment the following pyinstaller command to debug imports during runtime
+  #     # and comment out the other one.
+  #     - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
+  #     #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
+  #     # Uncomment the following to debug imports during runtime
+  #     - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
   #     - run: mv dist dist-ubuntu
   #     - run: tar -cvzf dist-ubuntu.tar.gz dist-ubuntu
 
