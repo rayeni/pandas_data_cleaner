@@ -16,7 +16,6 @@ import tkinter.font as font
 from tkinter.constants import WORD
 from tkinter import ttk, END, StringVar, IntVar, messagebox, filedialog
 
-# from PIL import ImageTk, Image
 import PIL.ImageTk
 import PIL.Image
 
@@ -46,7 +45,7 @@ class PandasDataCleaner(tk.Tk):
         super().__init__()
 
         # Change window title
-        self.title('Pandas Data Cleaner')
+        self.title('Pandas Data Cleaner, v1.0')
         try:
             # Set window icon
             self.iconbitmap('./images/panda.ico')
@@ -86,10 +85,8 @@ class PandasDataCleaner(tk.Tk):
 
         # Create logo
         try:
-            #self.logo = ImageTk.PhotoImage(Image.open('./images/logo.png'))
             self.logo = PIL.ImageTk.PhotoImage(PIL.Image.open('./images/logo.png'))
         except:
-            #self.logo = ImageTk.PhotoImage(Image.open(my_dir / './images/logo.png'))
             self.logo = PIL.ImageTk.PhotoImage(PIL.Image.open(my_dir / './images/logo.png'))
         # Create label for logo
         logo_label = tk.Label(logo_frame, bg='#1ac6ff', image=self.logo)
@@ -101,14 +98,7 @@ class PandasDataCleaner(tk.Tk):
         and to close the app are created here and added
         to the frame, top_frame.
         '''
-        # ---FIRST MENU BUTTON (Import from CSV), Top Frame, First Row, First Column--- #
-
-        # Create import button to import CSV file
-        #import_data = ttk.Button(
-        #    top_frame, 
-        #    text='Import from CSV', 
-        #    width=17, 
-        #    command=self.import_from_csv)
+        # ---FIRST MENU BUTTON (Import Data), Top Frame, First Row, First Column--- #
 
         # Create "Import Data" menu button
         mb_import_data = ttk.Menubutton(top_frame, text='Import Data', width=15)
@@ -1485,8 +1475,6 @@ class ReplaceSynonyms(tk.Toplevel):
 
         global df
 
-        # Get the selected listbox item (column name)
-        #col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
         # Get index of selected listbox item
         col_listbox_index = self.col_listbox.curselection()
         # Use index to get selected listbox item
@@ -1762,7 +1750,6 @@ class RemoveUnitsOfMeasurment(tk.Toplevel):
 
         # Get the selected listbox items and put in a list
         col_list = [self.col_listbox.get(i) for i in self.col_listbox.curselection()]
-        col_str = ', '.join(col_list)
         # Loop through col_list to remove units of measurement
         for col in col_list:
             df[col] = df[col].apply(self.remove_units_of_measurement)
