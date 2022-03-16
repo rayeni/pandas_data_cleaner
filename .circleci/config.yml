@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - checkout
-      - run pip show pip
+      - run: pip show pip
       # - run: pip install Pillow
       # - run: conda install pandas=1.2.4
       # - run: conda install scikit-learn=0.24.1
