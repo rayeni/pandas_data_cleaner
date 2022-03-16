@@ -50,7 +50,9 @@ jobs:
       - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
       #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
       # Uncomment the following to debug imports during runtime
-      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
+      #- run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
+      # Uncomment to check directory listing
+      - run: ls -l
       # - run: mv dist dist-macos
       # - run: tar -cvzf dist-macos.tar.gz dist-macos
 
