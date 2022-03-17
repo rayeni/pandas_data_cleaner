@@ -69,8 +69,8 @@ jobs:
 
     steps:
       - checkout
-      - run: sudo apt update
-      - run: sudo apt upgrade
+      - run: sudo apt update -y
+      #- run: sudo apt upgrade
       - run: sudo apt install python3-pip
       - run: sudo apt install python3-pil
       #- run: sudo apt install python3-pil.imagetk
