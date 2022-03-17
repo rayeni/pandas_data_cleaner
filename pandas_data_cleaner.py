@@ -18,6 +18,7 @@ from tkinter import ttk, END, StringVar, IntVar, messagebox, filedialog, PhotoIm
 
 import PIL.ImageTk
 import PIL.Image
+import PIL._tkinter_finder
 
 from pathlib import Path
 
