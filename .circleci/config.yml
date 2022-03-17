@@ -8,58 +8,61 @@ orbs:
 #     steps:
 
 jobs:
-  # build-with-windows:
-  #   executor:
-  #     name: win/default
-  #     shell: bash.exe
-
-  #   working_directory: ~/pandas_data_cleaner
-
-  #   steps:
-  #     - checkout
-  #     - run: pip install Pillow
-  #     - run: conda install pandas=1.2.4
-  #     - run: conda install scikit-learn=0.24.1
-  #     - run: pip install pyinstaller
-  #     # Uncomment the following pyinstaller command to debug imports during runtime
-  #     # and comment out the other one.
-  #     - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
-  #     #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
-  #     # Uncomment the following to debug imports during runtime
-  #     #- run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
-  #     - run: mv dist dist-windows
-  #     - run: tar -cvzf dist-windows.tar.gz dist-windows
-
-  #     - store_artifacts:
-  #         path: ~/pandas_data_cleaner/dist-windows.tar.gz
-  
-  build-with-macos:
-    macos:
-      xcode: "12.5.1"
+  build-with-windows:
+    executor:
+      name: win/default
+      shell: bash.exe
 
     working_directory: ~/pandas_data_cleaner
 
     steps:
       - checkout
-      - run: brew install python-tk
-      - run: brew install pillow
-      - run: pip3 install pandas==1.2.4
-      - run: pip3 install scikit-learn==0.24.1
-      - run: pip3 install pyinstaller
+      - run: pip install Pillow
+      - run: conda install pandas=1.2.4
+      - run: conda install scikit-learn=0.24.1
+      - run: pip install pyinstaller
+
       # Uncomment the following pyinstaller command to debug imports during runtime
       # and comment out the other one.
-      - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
-      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
+      - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
+      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+
       # Uncomment the following to debug imports during runtime
-      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner
-      # Uncomment to check directory listing
-      #- run: ls -l dist
-      #- run: ls -l dist/pandas_data_cleaner
-      # - run: mv dist dist-macos
-      # - run: tar -cvzf dist-macos.tar.gz dist-macos
+      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
+
+      # - run: mv dist dist-windows
+      # - run: tar -cvzf dist-windows.tar.gz dist-windows
 
       # - store_artifacts:
-      #     path: ~/pandas_data_cleaner/dist-macos.tar.gz
+      #     path: ~/pandas_data_cleaner/dist-windows.tar.gz
+  
+  # build-with-macos:
+  #   macos:
+  #     xcode: "12.5.1"
+
+  #   working_directory: ~/pandas_data_cleaner
+
+  #   steps:
+  #     - checkout
+  #     - run: brew install python-tk
+  #     - run: brew install pillow
+  #     - run: pip3 install pandas==1.2.4
+  #     - run: pip3 install scikit-learn==0.24.1
+  #     - run: pip3 install pyinstaller
+
+  #     # Uncomment the following pyinstaller command to debug imports during runtime
+  #     # and comment out the other one.
+  #     #- run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
+  #     - run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
+
+  #     # Uncomment the following to debug imports during runtime
+  #     #- run: ./dist/pandas_data_cleaner/pandas_data_cleaner
+
+  #     - run: mv dist dist-macos
+  #     - run: tar -cvzf dist-macos.tar.gz dist-macos
+
+  #     - store_artifacts:
+  #         path: ~/pandas_data_cleaner/dist-macos.tar.gz
     
   # build-with-ubuntu:
   #   machine:
@@ -90,13 +93,13 @@ jobs:
   #         path: ~/pandas_data_cleaner/dist-ubuntu.tar.gz
 
 workflows:
-  # build-with-windows:
-  #   jobs:
-  #     - build-with-windows
-
-  build-with-macos:
+  build-with-windows:
     jobs:
-      - build-with-macos
+      - build-with-windows
+
+  # build-with-macos:
+  #   jobs:
+  #     - build-with-macos
   
   # build-with-ubuntu:
   #   jobs:
