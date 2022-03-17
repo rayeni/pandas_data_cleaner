@@ -33,71 +33,71 @@ jobs:
   #     - store_artifacts:
   #         path: ~/pandas_data_cleaner/dist-windows.tar.gz
   
-  # build-with-macos:
-  #   macos:
-  #     xcode: "12.5.1"
+  build-with-macos:
+    macos:
+      xcode: "12.5.1"
 
-  #   working_directory: ~/pandas_data_cleaner
-
-  #   steps:
-  #     - checkout
-  #     - run: brew install python-tk
-  #     - run: brew install pillow
-  #     - run: pip3 install pandas==1.2.4
-  #     - run: pip3 install scikit-learn==0.24.1
-  #     - run: pip3 install pyinstaller
-  #     # Uncomment the following pyinstaller command to debug imports during runtime
-  #     # and comment out the other one.
-  #     - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
-  #     #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
-  #     # Uncomment the following to debug imports during runtime
-  #     - run: ./dist/pandas_data_cleaner/pandas_data_cleaner
-  #     # Uncomment to check directory listing
-  #     #- run: ls -l dist
-  #     #- run: ls -l dist/pandas_data_cleaner
-  #     # - run: mv dist dist-macos
-  #     # - run: tar -cvzf dist-macos.tar.gz dist-macos
-
-  #     # - store_artifacts:
-  #     #     path: ~/pandas_data_cleaner/dist-macos.tar.gz
-    
-  build-with-ubuntu:
-    machine:
-      image: ubuntu-2004:202010-01
-    
     working_directory: ~/pandas_data_cleaner
 
     steps:
       - checkout
-      - run: sudo apt update -y
-      - run: sudo apt install python3-pip
-      - run: sudo apt install python3-pil
-      - run: sudo apt install python3-pil.imagetk
-      - run: sudo apt install python3-tk
-      - run: sudo pip3 install pandas==1.2.4
-      - run: sudo pip3 install scikit-learn==0.24.1
-      - run: sudo pip3 install pyinstaller
+      - run: brew install python-tk
+      - run: brew install pillow
+      - run: pip3 install pandas==1.2.4
+      - run: pip3 install scikit-learn==0.24.1
+      - run: pip3 install pyinstaller
       # Uncomment the following pyinstaller command to debug imports during runtime
       # and comment out the other one.
       - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
-      # #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
+      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
       # Uncomment the following to debug imports during runtime
       - run: ./dist/pandas_data_cleaner/pandas_data_cleaner
-      # - run: mv dist dist-ubuntu
-      # - run: tar -cvzf dist-ubuntu.tar.gz dist-ubuntu
+      # Uncomment to check directory listing
+      #- run: ls -l dist
+      #- run: ls -l dist/pandas_data_cleaner
+      # - run: mv dist dist-macos
+      # - run: tar -cvzf dist-macos.tar.gz dist-macos
 
       # - store_artifacts:
-      #     path: ~/pandas_data_cleaner/dist-ubuntu.tar.gz
+      #     path: ~/pandas_data_cleaner/dist-macos.tar.gz
+    
+  # build-with-ubuntu:
+  #   machine:
+  #     image: ubuntu-2004:202010-01
+    
+  #   working_directory: ~/pandas_data_cleaner
+
+  #   steps:
+  #     - checkout
+  #     - run: sudo apt update -y
+  #     - run: sudo apt install python3-pip
+  #     - run: sudo apt install python3-pil
+  #     - run: sudo apt install python3-pil.imagetk
+  #     - run: sudo apt install python3-tk
+  #     - run: sudo pip3 install pandas==1.2.4
+  #     - run: sudo pip3 install scikit-learn==0.24.1
+  #     - run: sudo pip3 install pyinstaller
+  #     # Uncomment the following pyinstaller command to debug imports during runtime
+  #     # and comment out the other one.
+  #     #- run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
+  #     - run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
+  #     # Uncomment the following to debug imports during runtime
+  #     #- run: ./dist/pandas_data_cleaner/pandas_data_cleaner
+  #     - run: mv dist dist-ubuntu
+  #     - run: tar -cvzf dist-ubuntu.tar.gz dist-ubuntu
+
+  #     - store_artifacts:
+  #         path: ~/pandas_data_cleaner/dist-ubuntu.tar.gz
 
 workflows:
   # build-with-windows:
   #   jobs:
   #     - build-with-windows
 
-  # build-with-macos:
-  #   jobs:
-  #     - build-with-macos
-  
-  build-with-ubuntu:
+  build-with-macos:
     jobs:
-      - build-with-ubuntu
+      - build-with-macos
+  
+  # build-with-ubuntu:
+  #   jobs:
+  #     - build-with-ubuntu
