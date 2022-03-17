@@ -46,11 +46,13 @@ class PandasDataCleaner(tk.Tk):
 
         # Change window title
         self.title('Pandas Data Cleaner, v1.0')
+        
+        # Set window icon  
         try:
-            # Set window icon
-            self.iconbitmap('./images/panda.ico')
-        except:
             self.iconbitmap(my_dir / './images/panda.ico')
+        except:
+            self.iconbitmap(my_dir / './images/panda.xbm')
+
         # Set window dimensions
         self.geometry("800x290")
         # Disable resizing window
