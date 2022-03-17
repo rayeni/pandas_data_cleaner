@@ -24,17 +24,17 @@ jobs:
 
       # Uncomment the following pyinstaller command to debug imports during runtime
       # and comment out the other one.
-      - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
-      #- run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
+      #- run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images;images"
+      - run: pyinstaller pandas_data_cleaner.py --add-data "./images;images"
 
       # Uncomment the following to debug imports during runtime
-      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
+      #- run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
 
-      # - run: mv dist dist-windows
-      # - run: tar -cvzf dist-windows.tar.gz dist-windows
+      - run: mv dist dist-windows
+      - run: tar -cvzf dist-windows.tar.gz dist-windows
 
-      # - store_artifacts:
-      #     path: ~/pandas_data_cleaner/dist-windows.tar.gz
+      - store_artifacts:
+          path: ~/pandas_data_cleaner/dist-windows.tar.gz
   
   # build-with-macos:
   #   macos:
