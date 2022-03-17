@@ -14,7 +14,7 @@ import re
 import tkinter as tk
 import tkinter.font as font
 from tkinter.constants import WORD
-from tkinter import ttk, END, StringVar, IntVar, messagebox, filedialog
+from tkinter import ttk, END, StringVar, IntVar, messagebox, filedialog, PhotoImage
 
 import PIL.ImageTk
 import PIL.Image
@@ -49,9 +49,10 @@ class PandasDataCleaner(tk.Tk):
         
         # Set window icon  
         try:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            # https://github.com/NetroScript/Graveyard-Keeper-Savefile-Editor/issues/43
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.xbm')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
 
         # Set window dimensions
         self.geometry("800x290")
