@@ -70,7 +70,6 @@ jobs:
     steps:
       - checkout
       - run: sudo apt update -y
-      #- run: sudo apt upgrade
       - run: sudo apt install python3-pip
       - run: sudo apt install python3-pil
       #- run: sudo apt install python3-pil.imagetk
@@ -81,9 +80,8 @@ jobs:
       # and comment out the other one.
       - run: pyinstaller pandas_data_cleaner.py --debug=imports --add-data "./images:images"
       # #- run: pyinstaller pandas_data_cleaner.py --add-data "./images:images"
-      - run: ls -l dist/pandas_data_cleaner
       # Uncomment the following to debug imports during runtime
-      # - run: ./dist/pandas_data_cleaner/pandas_data_cleaner.exe
+      - run: ./dist/pandas_data_cleaner/pandas_data_cleaner
       # - run: mv dist dist-ubuntu
       # - run: tar -cvzf dist-ubuntu.tar.gz dist-ubuntu
 
