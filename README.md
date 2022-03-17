@@ -56,6 +56,12 @@ See the complete documentation at https://pandasdatacleaner.com/documentation/
 I acknowledge that this tool needs a lot of refinement.  That is where you come in. 
 For bug reports and feature requests, open an issue [here](https://github.com/rayeni/pandas_data_cleaner/issues)
 
+When submitting a bug report, please include the following:
+
+* The error message in the CLI.
+* The operation that caused the error.
+* If possible, the dataset you are using.
+
 ## License
 
 Licensed under [BSD](https://github.com/rayeni/pandas_data_cleaner/blob/main/LICENSE.txt)
