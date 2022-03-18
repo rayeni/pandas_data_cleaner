@@ -22,6 +22,9 @@ import PIL._tkinter_finder
 
 from pathlib import Path
 
+import warnings
+warnings.filterwarnings('ignore')
+
 # Windows only configuration to improve font resolution
 try:
     from ctypes import windll
@@ -60,9 +63,6 @@ class PandasDataCleaner(tk.Tk):
         # Disable resizing window
         self.resizable(False, False)
         self.configure(bg='#1ac6ff')
-
-        # Create variable to hold file path, to be accessed later by other functions
-        self.csv_file = ''
 
         # Create frame for logo
         logo_frame = tk.Frame(self, bg='#1ac6ff', width=800, height=70)
@@ -103,37 +103,11 @@ class PandasDataCleaner(tk.Tk):
         to the frame, top_frame.
         '''
         # ---FIRST MENU BUTTON (Import Data), Top Frame, First Row, First Column--- #
-
-        # Create "Import Data" menu button
-        mb_import_data = ttk.Menubutton(top_frame, text='Import Data', width=15)
-
-        # Create "Import Data" menu
-        menu_import_data = tk.Menu(mb_import_data, tearoff=False)
-
-        # Create "Import CSV" menu option
-        menu_import_data.add_command(
-            label='Import CSV', 
-            font=("Segoe UI", menu_option_font), 
-            command=self.import_csv)
-
-        # Create "Import TSV" menu option
-        menu_import_data.add_command(
-            label='Import TSV', 
-            font=("Segoe UI", menu_option_font), 
-            command=self.import_tsv)
-
-        # Create "Import Excel" menu option
-        menu_import_data.add_command(
-            label='Import Excel', 
-            font=("Segoe UI", menu_option_font), 
-            command=self.import_excel)
-
-        # Associate menu with menu button
-        mb_import_data["menu"] = menu_import_data
-
-        # Display menu button in frame
-        mb_import_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
-
+        # Create import button to import CSV file
+        import_data = ttk.Button(top_frame, text='Import CSV', width=17, command=self.import_csv)
+        # Add import button to frame
+        import_data.grid(row=0, column=0, padx=5, pady=5, sticky='W')
+       
         # ---SECOND MENU BUTTON (Export to CSV), Top Frame, First Row, Second Column--- #
 
         # Create export button to export Dataframe to CSV file
@@ -394,61 +368,7 @@ class PandasDataCleaner(tk.Tk):
             messagebox.showerror(
                 title='Error', 
                 message='Error loading CSV file.'
-                )
-        
-    def import_tsv(self):
-        '''Import tsv file into dataframe.'''
-
-        # Set df variable as global variable to enable all functions to modify it
-        global df
-
-        # Get path/location of tsv file to import
-        tsv_file = filedialog.askopenfilename(
-            initialdir="./", 
-            title="Open TSV File", 
-            filetypes=(("TSV Files", "*.tsv"),("All Files","*.*")))
-        
-        # Read tsv into global df variable
-        df = pd.read_csv(tsv_file, sep='\t')
-
-        # Give user confirmation that tsv file was imported.
-        if len(df) > 0:
-            messagebox.showinfo(
-                title="Load TSV", 
-                message='TSV file loaded successfully.'
-                )
-        else:
-            messagebox.showerror(
-                title='Error', 
-                message='Error loading TSV file.'
-                )
-    
-    def import_excel(self):
-        '''Import Excel file into dataframe.'''
-
-        # Set df variable as global variable to enable all functions to modify it
-        global df
-
-        # Get path/location of Excel file to import
-        excel_file = filedialog.askopenfilename(
-            initialdir="./", 
-            title="Open Excel File", 
-            filetypes=(("Excel Files", "*.xlsx"),("All Files","*.*")))
-        
-        # Read Excel file into global df variable
-        df = pd.read_excel(excel_file)
-
-        # Give user confirmation that Excel file was imported.
-        if len(df) > 0:
-            messagebox.showinfo(
-                title="Load Excel File", 
-                message='Excel file loaded successfully.'
-                )
-        else:
-            messagebox.showerror(
-                title='Error', 
-                message='Error loading Exce; file.'
-                )    
+                )   
 
     def export_to_csv(self):
         '''Export dataframe to csv file.'''
@@ -907,59 +827,47 @@ class PandasDataCleaner(tk.Tk):
 
     def replace_na_with_ndotadot(self):
         '''
-        Find and replace NA NaN with N.A. 
+        Find and replace None, NA NaN, and blanks 
+        with N.A. in all string/object columns.
         This eliminates false NaNs.
         '''
 
         # Set df variable as global variable to enable all functions to modify it
         global df
 
-        # Set counter variable to count the number of replacements
-        counter = 0
+        # Get the string columns and put in a list
+        string_cols = df.select_dtypes(include=['object']).columns.to_list()
 
-        # Create dictionary.  Dictionary will be used to recreate df to capture instances of NA
-        a_dict = {}
+        # Sum of all nulls across all columns before replacment
+        nulls_before = int(df[string_cols].isnull().sum().sum())
 
-        # Create variable to get number of rows in df. Used in range of for loop.
-        rows = df.shape[0] + 1
+        # Sum of all nulls across all columns after replacement
+        nulls_after = 0
 
-        # Create variable to get number of columns in df. Used in range of for loop.
-        columns = df.shape[1]
-
-        # Read CSV using csv.reader, not pandas, to capture instances of NA
-        with open(self.csv_file, "r") as file:
-            csv_reader = csv.reader(file, delimiter=',')
-            lists = [lines for lines in csv_reader]
-
-        # Grab the first list from lists to get the column headers
-        list_0 = lists[0]
-
-        # Add keys and empty values/list to dictionary
-        for i in range(0,len(list_0)):
-            a_dict[list_0[i]] = []
-        
-        # Add values to dictionary:
-        for c in range(0,columns):
-            for r in range(1, rows):
-                a_dict[list_0[c]].append(lists[r][c])
-
-        # Replace NA NaN with N.A. to eliminate NaNs
-        for key in a_dict:
-            for i in range(0, rows-1):
-                if a_dict[key][i] in ['N/A','NA','n/a']:
-                    df[key][i] = 'N.A.'
-                    counter = counter + 1
-
-        # Notify user
-        if counter == 0: 
+        # Check if there are any string columns in list or nulls in dataset
+        if len(string_cols) == 0:
+            # Notify user that there are no string columns
             messagebox.showinfo(
                 title="Replace NA (False NaN) with N.A.", 
-                message='No NA NaNs found.'
+                message='No string/object columns in dataset.'
+                )
+        elif nulls_before == 0:
+            # Notify user that there are no string nulls in dataset
+            messagebox.showinfo(
+                title="Replace NA (False NaN) with N.A.", 
+                message='There are no string nulls in dataset.'
                 )
         else:
+            # Replace nulls with N.A.
+            df[string_cols] = df[string_cols].fillna('N.A.')
+            # Update nulls_after
+            nulls_after = int(df[string_cols].isnull().sum().sum())
+            # Get number of nulls replaces:
+            nulls_replaced = nulls_before - nulls_after
+            # Notify user that there are no string nulls in dataset
             messagebox.showinfo(
-                title="Replace NA NaN with N.A.", 
-                message=f'{counter} NAs were replaced with N.A.'
+                title="Replace NA (False NaN) with N.A.", 
+                message=f'{nulls_replaced} of {nulls_before} nulls replaced.'
                 )
 
     def open_remove_rows_with_x_nulls_window(self):
@@ -1129,28 +1037,51 @@ class PandasDataCleaner(tk.Tk):
         leads_with_num = object_cols.apply(lambda col: col.str.startswith(
             ('$', '€', '£', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')), axis=0)
 
-        # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
-        if len(df) == 0:
-            messagebox.showerror(
-                title="No Data Present", 
-                message='Please load CSV file.'
-                )
-        # If there are no object columns, then exit
-        elif object_cols.shape[1] == 0:
+        # The following is a precheck of self.cols_list = self.get_cols_list() that resides
+        # in the RemoveUnitsOfMeasurement() class. 
+        # 
+        # When RemoveUnitsOfMeasurment.get_cols_list() is called, a list comprehension, droplist, 
+        # is created. 
+        # 
+        # While the list comprehension is being created, if there are no True values in the mask, 
+        # (i.e., name "mask" in get_cols_list(), and named "leads_with_num" here), then the 
+        # application breaks.  
+        # 
+        # To prevent that from happening, an attempt to build the listcomp is done
+        # here.  If it passes, then we proceed.  If not, then present user with a message
+        # that there are no columns meeting criterion, and the window/interface is never opened.
+        try:
+            # Check if list comprehension can be created.
+            droplist = [col for col in leads_with_num.columns if any(leads_with_num[col]) == False or 
+                        leads_with_num[col].value_counts(normalize=True).to_dict()[True] < 0.5]
+        except KeyError:
             messagebox.showinfo(
-                title="No Object Columns", 
-                message='No object columns exist.'
+                title="No Columns Meeting Criterion", 
+                message='No columns were found that meet criterion.'
                 )
-        # If there are no column values leading with numbers or currency symbols, then exit
-        elif any(leads_with_num) == False:
-            messagebox.showinfo(
-                title="No Data Found", 
-                message='No data found that meets criteria.'
-                )
-        # Open window
         else:
-            window = RemoveUnitsOfMeasurment(self)
-            window.grab_set()
+            # Check if dataframe is loaded. If it's not loaded (len(df) == 0 ), then showerror
+            if len(df) == 0:
+                messagebox.showerror(
+                    title="No Data Present", 
+                    message='Please load CSV file.'
+                    )
+            # If there are no object columns, then exit
+            elif object_cols.shape[1] == 0:
+                messagebox.showinfo(
+                    title="No Object Columns", 
+                    message='No object columns exist.'
+                    )
+            # If there are no column values leading with numbers or currency symbols, then exit
+            elif any(leads_with_num) == False:
+                messagebox.showinfo(
+                    title="No Data Found", 
+                    message='No data found that meets criteria.'
+                    )
+            # Open window
+            else:
+                window = RemoveUnitsOfMeasurment(self)
+                window.grab_set()
 
     def open_replace_synonyms_window(self):
         '''Open Replace Synonyms Window.'''
@@ -1195,9 +1126,10 @@ class ReplaceSynonyms(tk.Toplevel):
         # Set window properties
         self.geometry('770x650')
         try:
-            self.iconbitmap('./images/panda.ico')
+            # https://github.com/NetroScript/Graveyard-Keeper-Savefile-Editor/issues/43
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Replace Synonyms...')
         self.configure(bg='#1ac6ff')
@@ -1533,9 +1465,9 @@ class RemoveUnitsOfMeasurment(tk.Toplevel):
         # Set window properties
         self.geometry('530x590')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Remove Units of Measurement')
         self.configure(bg='#1ac6ff')
@@ -1670,8 +1602,9 @@ class RemoveUnitsOfMeasurment(tk.Toplevel):
             ('$', '€', '£', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')), axis=0)
 
         # Drop any columns that don't meet above criteria or that meets 
-        # criteria but doesn't meet threshold of 50%
-        droplist = [col for col in mask.columns if any(mask[col]) == False or mask[col].value_counts(normalize=True).to_dict()[True] < 0.5]
+        # criteria but doesn't meet threshold of 95%
+        droplist = [col for col in mask.columns if any(mask[col]) == False or 
+                    mask[col].value_counts(normalize=True).to_dict()[True] < 0.5]
         mask.drop(droplist, axis=1, inplace=True)
 
         return mask.columns.to_list()
@@ -1786,9 +1719,9 @@ class RemovePercents(tk.Toplevel):
         # Set window properties
         self.geometry('530x590')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Remove Percent Signs')
         self.configure(bg='#1ac6ff')
@@ -2065,9 +1998,9 @@ class DummifyColumns(tk.Toplevel):
         # Set window properties
         self.geometry('530x390')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Dummify Columns')
         self.configure(bg='#1ac6ff')
@@ -2203,9 +2136,9 @@ class BinaryClassification(tk.Toplevel):
         # Set window properties
         self.geometry('530x420')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Binary Classification of Target')
         self.configure(bg='#1ac6ff')
@@ -2488,6 +2421,8 @@ class BinaryClassification(tk.Toplevel):
 
         # Set df as global variable.  Without it, the application breaks.
         global df
+
+        # Categorize string values to 0 and 1
         df[target_col] = df[target_col].map({value_1: category_1, value_2: category_2})
 
         messagebox.showinfo(
@@ -2512,9 +2447,9 @@ class DropColumns(tk.Toplevel):
         # Set window properties
         self.geometry('510x400')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Drop Columns')
         self.configure(bg='#1ac6ff')
@@ -2623,9 +2558,9 @@ class FillForward(tk.Toplevel):
         # Set window properties
         self.geometry('520x550')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Fill Forward')
         self.configure(bg='#1ac6ff')
@@ -2821,9 +2756,9 @@ class ImputeNullsWithMean(tk.Toplevel):
         # Set window properties
         self.geometry('520x550')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Impute Nulls with Mean, Mode, Median')
         self.configure(bg='#1ac6ff')
@@ -3052,9 +2987,9 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
         # Set window properties
         self.geometry('400x120')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Drop Rows with High Number of Missing Values')
         self.configure(bg='#1ac6ff')
@@ -3150,23 +3085,31 @@ class RemoveRowsWithXNullsWindow(tk.Toplevel):
         # Get percent of total rows to be deleted
         pct_of_total_rows = round((num_rows_to_be_deleted/num_rows_before)*100,2)
 
-        # Ask the user if they want to delete specfied number of rows
-        question = messagebox.askyesno(
-            title="Drop Rows Exceeding Null Threshold", 
-            message=f"Drop {num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data)?"
-            )
-
-        # If the user answers Yes, then proceed to delete rows
-        if question == 1:
-            # Determine value for dropna thresh option: dropna(thresh=)
-            threshold = num_cols - missing_thresh + 1
-            # Drop rows
-            df.dropna(thresh=threshold, inplace=True)
-            # Notify user that rows have been deleted
+        # Notify or ask user
+        if num_rows_to_be_deleted == 0:
+            # Notify user that there are no rows meeting threshold
             messagebox.showinfo(
                 title="Drop Rows Exceeding Null Threshold", 
-                message=f'{num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data), deleted.'
+                message=f'There are no rows to delete that meet null limit.'
                 )
+        else:
+            # Ask the user if they want to delete specfied number of rows
+            question = messagebox.askyesno(
+                title="Drop Rows Exceeding Null Threshold", 
+                message=f"Drop {num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data)?"
+                )
+
+            # If the user answers Yes, then proceed to delete rows
+            if question == 1:
+                # Determine value for dropna thresh option: dropna(thresh=)
+                threshold = num_cols - missing_thresh + 1
+                # Drop rows
+                df.dropna(thresh=threshold, inplace=True)
+                # Notify user that rows have been deleted
+                messagebox.showinfo(
+                    title="Drop Rows Exceeding Null Threshold", 
+                    message=f'{num_rows_to_be_deleted} rows, ({pct_of_total_rows}% of data), deleted.'
+                    )
 
 class FillAllNullsWindow(tk.Toplevel):
     '''
@@ -3185,9 +3128,9 @@ class FillAllNullsWindow(tk.Toplevel):
         # Set window properties
         self.geometry('600x120')
         try:
-            self.iconbitmap('./images/panda.ico')
+            self.iconphoto(True, PhotoImage(file=my_dir / './images/panda.png'))
         except:
-            self.iconbitmap(my_dir / './images/panda.ico')
+            self.iconphoto(True, PhotoImage(file='./images/panda.png'))
         self.resizable(0,0)
         self.title('Fill All Nulls in DataFrame')
         self.configure(bg='#1ac6ff')
