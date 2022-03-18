@@ -20,10 +20,10 @@ Pandas Data Cleaner is a Python interactive data cleaning tool that allows users
 * Clone or download the repo.
 * Find and run the pandas_data_cleaner.py file.
 * Dependencies:
- * Tkinter (macOS/Linux)
- * Pillow
- * Pandas>=1.2.4
- * scikit-learn>=0.24.1
+    * Tkinter (macOS/Linux)
+    * Pillow
+    * Pandas>=1.2.4
+    * scikit-learn>=0.24.1
 
 ## Documentation
 
