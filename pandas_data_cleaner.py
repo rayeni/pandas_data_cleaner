@@ -1,27 +1,34 @@
-# Import libaries
+# Data manipulation
 import pandas as pd
 import sklearn.impute
 
+# To access and open webrowser
 import webbrowser
 
+# For date operations
 from datetime import datetime
+
+# For buffering stdout
 import io
 
-import csv
-
+# For identifying string patterns
 import re
 
+# For GUI development
 import tkinter as tk
 import tkinter.font as font
 from tkinter.constants import WORD
 from tkinter import ttk, END, StringVar, IntVar, messagebox, filedialog, PhotoImage
 
+# For image rendering
 import PIL.ImageTk
 import PIL.Image
 import PIL._tkinter_finder
 
+# To help standalone application to find files during bootstrap
 from pathlib import Path
 
+# Suppress warnings about dataframe operations
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -356,7 +363,7 @@ class PandasDataCleaner(tk.Tk):
             filetypes=(("CSV Files", "*.csv"),("All Files","*.*")))
         
         # Read csv into global df variable
-        df = pd.read_csv(self.csv_file)
+        df = pd.read_csv(self.csv_file, encoding='unicode_escape')
 
         # Give user confirmation that csv file was imported.
         if len(df) > 0:
